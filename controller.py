@@ -3,6 +3,7 @@ from model import Model
 from view import View
 from event_bus import EventBus
 from events import Event, EventType
+from node import NodeType
 
 class Controller():
     def __init__(self, eventBus: EventBus, model: Model, view: View):
@@ -14,15 +15,15 @@ class Controller():
     
     def handleEvent(self, event: Event):
         if event.type == EventType.ADD_INPUT_INCOMPLETE:
-            self.model.addInput()
+            self.model.addNode(NodeType.INPUT)
         
         if event.type == EventType.ADD_INPUT_COMPLETE:
-            self.view.addInput(event.payload.state)
+            self.view.addNode(NodeType.INPUT, event.payload.state)
 
         if event.type == EventType.ADD_OUTPUT_INCOMPLETE:
-            self.model.addOutput()
+            self.model.addNode(NodeType.OUTPUT)
 
         if event.type == EventType.ADD_OUTPUT_COMPLETE:
-            self.view.addOutput(event.payload.state)
+            self.view.addNode(NodeType.OUTPUT, event.payload.state)
 
 

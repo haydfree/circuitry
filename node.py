@@ -1,8 +1,13 @@
+from enum import Enum, auto
+
+
+class NodeType(Enum):
+    INPUT = auto()
+    OUTPUT = auto()
 
 
 class Node:
-    def __init__(self, t: int, state: int):
-        # t = type; 0 for input, 1 for output
+    def __init__(self, t: NodeType, state: int):
         self.t = t
         self.state = state
 

@@ -25,9 +25,11 @@ class View:
         self.backgroundColor = pygame.Color(40,28,52)
         self.buttonColor = pygame.Color(50, 50, 50)
         self.menuHeight = 100
+        self.nodeMargin = 50
 
         self.buttonCounter = 0
         self.inputCounter = 0
+        self.outputCounter = 0
 
         self.createButton("ADD INPUT", (50,650))
 
@@ -35,7 +37,8 @@ class View:
         self.screen.fill(self.backgroundColor)
 
         self.drawButtons()
-        self.drawInputs()
+        for nodeType in range(0, 2):
+            self.drawNodes(nodeType)
         self.drawMenuBorder(self.windowHeight-self.menuHeight)
 
         pygame.display.flip()
@@ -85,19 +88,35 @@ class View:
 
         return None
 
-    def addInput(self, state: int):
-        self.inputs[self.inputCounter] = {
-            "state": state
-        }
-        self.inputCounter += 1
+    def drawNodes(self, nodeType: int):
+        if nodeType == 0:
+            nodes = self.inputs
+            counter = self.inputCounter
+            x: Tuple[int, int] = self.nodeMargin
+        else:
+            nodes = self.outputs
+            counter = self.outputCounter
+            x: Tuple[int, int] = self.windowWidth - self.nodeMargin
 
-    def drawInputs(self):
-        for idx, inp in enumerate(self.inputs):
+        for idx, inp in enumerate(nodes):
             workableHeight = self.windowHeight - self.menuHeight
-            x: Tuple[int, int] = 50
-            y: Tuple[int, int] = (idx+1) * (workableHeight / (self.inputCounter+1))
+            y: Tuple[int, int] = (idx+1) * (workableHeight / (counter+1))
             size: int = 10
             pygame.draw.circle(self.screen, self.buttonColor, (x,y), size)
+
+    def addNode(self, nodeType: int, state: int):
+        if nodeType == 0:
+            nodes = self.inputs
+            nodes[self.inputCounter] = {
+                "state": state
+            }
+            self.inputCounter += 1
+        else:
+            nodes = self.outputs
+            nodes[self.outputCounter] = {
+                "state": state
+            }
+            self.outputCounter += 1
 
     def eventLoop(self):
         for event in pygame.event.get():
