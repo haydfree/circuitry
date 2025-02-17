@@ -1,12 +1,14 @@
 import pygame
 from typing import Tuple
 from datetime import datetime
-from event_bus import EventBus
 from events import Event, EventType
+from event_bus import EventBus
 
 
 class View:
     def __init__(self, eventBus: EventBus, windowWidth: int, windowHeight: int):
+        self.eventBus = eventBus
+
         pygame.init()
         self.screen: pygame.display = pygame.display.set_mode((windowWidth, windowHeight))
         self.clock: pygame.time.Clock = pygame.time.Clock()
@@ -22,69 +24,87 @@ class View:
         self.buttonTextColor = pygame.Color(200, 200, 200)
         self.backgroundColor = pygame.Color(40,28,52)
         self.buttonColor = pygame.Color(50, 50, 50)
-        self.inputColor = pygame.Color(50, 50, 50)
+        self.menuHeight = 100
 
-        self.eventBus = eventBus
+        self.buttonCounter = 0
+        self.inputCounter = 0
 
-    def update(self):
+        self.createButton("ADD INPUT", (50,650))
+
+    def drawScreen(self):
         self.screen.fill(self.backgroundColor)
 
-        self.clearButtons()
-        self.createButton("add input", (50,650))
         self.drawButtons()
+        self.drawInputs()
+        self.drawMenuBorder(self.windowHeight-self.menuHeight)
 
         pygame.display.flip()
         self.clock.tick(self.frameRate)
 
     def run(self):
         while self.running:
-            self.handleEvents()
-            self.update()
+            self.drawScreen()
+            self.eventLoop()
 
     def createButton(self, text: str, buttonPos: Tuple[int, int]):
-        font = pygame.font.SysFont("Source Code Pro", 10)
+        font: pygame.font = pygame.font.SysFont("Source Code Pro", 10) 
         renderedText = font.render(text, True, self.buttonTextColor)
-        buttonSize = (80, 50)
+        buttonSize: Tuple[int, int] = (80, 50)
         button = pygame.Rect(buttonPos, buttonSize)
-        textPos = (buttonPos[0] + 15, buttonPos[1] + 20)
+        textPos: Tuple[int, int] = (buttonPos[0]+15,buttonPos[1]+20)
         self.buttons[self.buttonCounter] = {
             "rect": button,
             "renderedText": renderedText,
-            "textPos": textPos,
-            "text": text
+            "text": text, 
+            "textPos": textPos
         }
-        self.buttonCounter += 1
 
     def drawButtons(self):
-        for btn in self.buttons.values():
-            pygame.draw.rect(self.screen, self.buttonColor, btn["rect"])
-            self.screen.blit(btn["renderedText"], btn["textPos"])
+        for idx in range(0, self.buttonCounter+1):
+            button = self.buttons[idx]["rect"]
+            renderedText = self.buttons[idx]["renderedText"]
+            textPos = self.buttons[idx]["textPos"]
 
+            pygame.draw.rect(self.screen, self.buttonColor, button)
+            self.screen.blit(renderedText, textPos)
+        
     def clearButtons(self):
-        self.buttons.clear()
-        self.buttonCounter = 0
+        self.buttons = {}
+
+    def drawMenuBorder(self, y: int):
+        startPos = (0, y)
+        endPos = (self.windowWidth, y)
+        pygame.draw.aaline(self.screen, self.buttonTextColor, startPos, endPos)
 
     def getHoveredButtonText(self):
         mousePos = pygame.mouse.get_pos()
-        for btn in self.buttons.values():
+        for idx in range(0, self.buttonCounter+1):
+            btn = self.buttons[idx]
             if btn["rect"].collidepoint(mousePos):
                 return btn["text"]
+
         return None
 
-    def drawInput(self):
-        pos: Tuple[int, int] = (0,0)
-        numInputs = len(self.inputs) + 1 
-        x: int = 50
-        y: int = 20 + self.windowHeight / numInputs 
-        size: int = 10
-        pygame.draw.circle(self.screen, self.inputColor, (x, y), size)
-        self.update()
+    def addInput(self, state: int):
+        self.inputs[self.inputCounter] = {
+            "state": state
+        }
+        self.inputCounter += 1
 
-    def handleEvents(self):
+    def drawInputs(self):
+        for idx, inp in enumerate(self.inputs):
+            workableHeight = self.windowHeight - self.menuHeight
+            x: Tuple[int, int] = 50
+            y: Tuple[int, int] = (idx+1) * (workableHeight / (self.inputCounter+1))
+            size: int = 10
+            pygame.draw.circle(self.screen, self.buttonColor, (x,y), size)
+
+    def eventLoop(self):
         for event in pygame.event.get():
             hoveredText = self.getHoveredButtonText()
             clicked = pygame.mouse.get_pressed()[0]
 
             if hoveredText is not None and clicked:
                 self.eventBus.publish(Event(EventType.ADD_INPUT_INCOMPLETE))
+
 

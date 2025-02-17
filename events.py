@@ -3,6 +3,8 @@ from enum import Enum, auto
 class EventType(Enum):
     ADD_INPUT_INCOMPLETE = auto()
     ADD_INPUT_COMPLETE = auto()
+    ADD_OUTPUT_INCOMPLETE = auto()
+    ADD_OUTPUT_COMPLETE = auto()
 
 class Event:
     def __init__(self, eventType: EventType, payload=None):
