@@ -1,8 +1,8 @@
 import pygame
-from model import Model
-from view import View
-from controller import Controller
-from event_bus import EventBus
+from Model import Model
+from View import View
+from Controller import Controller
+from Event import EventBus
 
 
 class App:
