@@ -5,10 +5,11 @@ from OutputView import OutputView
 
 
 class GateView:
-    def __init__(self, pos, size, text, gateType, gateId, numInputs, numOutputs, color, textColor, screen, nodeColor):
+    def __init__(self, pos, size, text, gateType, gateId, numInputs, numOutputs, color, textColor, screen, nodeColor, textSize):
         self.pos = pos
         self.size = size
         self.text = text
+        self.textSize = textSize
         self.type = gateType
         self.id = gateId 
         self.left = pos[0]
@@ -33,7 +34,7 @@ class GateView:
         for out in range(0, numOutputs):
             self.outputs.append(OutputView((0,0), self.nodeSize, out, 0, self.nodeColor))
 
-        self.font: pygame.font = pygame.font.SysFont("Source Code Pro", 10) 
+        self.font: pygame.font = pygame.font.SysFont("Source Code Pro", self.textSize) 
         self.renderedText = self.font.render(text, True, self.textColor)
         self.rect = pygame.Rect(self.left, self.top, self.width, self.height)
 

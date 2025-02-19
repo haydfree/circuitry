@@ -14,14 +14,14 @@ class Model:
 
     def addInput(self):
         state = 0
-        newInput = Input(state)
+        newInput = Input(state, None, None)
         
         self.inputs.append(newInput)
         self.eventBus.publish(Event(EventType.ADD_INPUT_VIEW, newInput))
 
     def addOutput(self):
         state = 0
-        newOutput = Output(state)
+        newOutput = Output(state, None, None)
 
         self.outputs.append(newOutput)
         self.eventBus.publish(Event(EventType.ADD_OUTPUT_VIEW, newOutput))
@@ -39,6 +39,11 @@ class Model:
             outputs = 1
             newGate = Gate(gateType, text)
             self.eventBus.publish(Event(EventType.ADD_AND_GATE_VIEW, (text, inputs, outputs)))
+
+    def linkNodes(self, node1, node2):
+        node2.input = node1
+        node1.output = node2
+        self.eventBus.publish(Event(EventType.LINK_NODES_VIEW, (node1, node2)))
 
 
 

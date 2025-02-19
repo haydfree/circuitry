@@ -33,4 +33,10 @@ class Controller():
         if event.type == EventType.ADD_AND_GATE_VIEW:
             self.view.addGate(GateType.AND_GATE, event.payload)
 
+        if event.type == EventType.LINK_NODES_MODEL:
+            self.model.linkNodes(event.payload[0], event.payload[1])
+
+        if event.type == EventType.LINK_NODES_VIEW:
+            pass
+
 

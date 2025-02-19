@@ -41,11 +41,13 @@ class View:
         self.backgroundColor = pygame.Color(40,28,52)
         self.buttonColor = pygame.Color(50, 50, 50)
         self.nodeColor = pygame.Color(20, 20, 20)
-        self.buttonSize = (80,50)
+        self.buttonSize = (80, 50)
+        self.buttonTextSize = 10
         self.nodeSize = 10
         self.menuHeight = 100
         self.nodeMargin = 50
-        self.gateSize = (80,80)
+        self.gateSize = (120,120)
+        self.gateTextSize = 20
         self.dragging = False
 
         self.addButton("ADD INPUT", (50,650), ButtonType.ADD_INPUT)
@@ -99,7 +101,7 @@ class View:
             gate.drawOutputs()
 
     def addButton(self, text: str, buttonPos: Tuple[int, int], buttonType: ButtonType):
-        newButtonView = ButtonView(buttonPos, self.buttonSize, self.buttonCounter, text, buttonType, self.buttonColor, self.buttonTextColor)
+        newButtonView = ButtonView(buttonPos, self.buttonSize, self.buttonCounter, text, buttonType, self.buttonColor, self.buttonTextColor, self.buttonTextSize)
         self.buttons.append(newButtonView)
         self.buttonCounter += 1
 
@@ -129,8 +131,10 @@ class View:
 
     def addGate(self, gateType: GateType, payload):
         text, numInputs, numOutputs = payload 
-        pos = (self.windowWidth/2, self.windowHeight/2)
-        newGateView = GateView(pos, self.gateSize, text, gateType, self.gateCounter, numInputs, numOutputs, self.buttonColor, self.buttonTextColor, self.screen, self.nodeColor)
+        left = self.windowWidth / 2 - (self.gateSize[0]/2)
+        top = ((self.windowHeight - self.menuHeight) / 2) - (self.gateSize[1]/2) 
+        pos = (left, top)
+        newGateView = GateView(pos, self.gateSize, text, gateType, self.gateCounter, numInputs, numOutputs, self.buttonColor, self.buttonTextColor, self.screen, self.nodeColor, self.gateTextSize)
         self.gates.append(newGateView)
         self.gateCounter += 1
 
@@ -249,30 +253,28 @@ class View:
                     gate.updatePos(self.screen, pos)
                 
                 # link node to another node
-                clickedInput = hoveredObject in self.inputs
-                clickedOutput = hoveredObject in self.outputs
-                if clickedInput or clickedOutput:
+                clickedNode = hoveredObject in self.inputs or hoveredObject in self.outputs
+                for gate in self.gates:
+                    if hoveredObject in gate.inputs or hoveredObject in gate.outputs:
+                        clickedNode = True
+                if clickedNode:
                     found = False
-                    clickedAnotherInput = False
-                    clickedAnotherOutput = False
-                    ho1 = self.getHoveredObject()
-                    ho2 = self.getHoveredObject()
-                    while not found:
+                    clickedAnotherNode = False
+                    while not clickedAnotherNode:
                         ho2 = self.getHoveredObject()
-                        found = (ho1 != ho2) and (ho1 is not None) and (ho2 is not None)
+                        clickedAnotherNode = (hoveredObject != ho2) and (hoveredObject is not None) and (ho2 is not None)
                         ev2 = pygame.event.wait()
-                        if ho2 is None:
+                        if (ho2 is None) or \
+                            (hoveredObject == ho2) or \
+                            (hoveredObject is None) or \
+                            (ev2.type != pygame.MOUSEBUTTONDOWN) or \
+                            not (ho2.type == NodeType.INPUT or ho2.type == NodeType.OUTPUT):
+                            clickedAnotherNode = False 
                             continue
-                        if ho2.type == NodeType.INPUT and ev2.type == pygame.MOUSEBUTTONDOWN:
-                            clickedAnotherInput = True
-                        if ho2.type == NodeType.OUTPUT and ev2.type == pygame.MOUSEBUTTONDOWN: 
-                            clickedAnotherOutput = True
-                    if clickedAnotherInput:
-                        ho2.inputs.append(ho1)
-                        ho2.linkedInputCounter += 1
-                    if clickedAnotherOutput:
-                        ho2.outputs.append(ho1)
-                        ho2.linkedOutputCounter += 1
+                        
+                        clickedAnotherNode = True
+                    print(f"linked node1: {hoveredObject.type} {hoveredObject.id} and node2: {ho2.type} {ho2.id}")
+                    self.eventBus.publish(Event(EventType.LINK_NODES_MODEL, (hoveredObject, ho2)))
                      
 
             

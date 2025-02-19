@@ -12,10 +12,8 @@ class InputView:
         self.type = NodeType.INPUT
         self.color = color
 
-        self.inputs = []
-        self.outputs = []
-        self.linkedInputCounter = 0
-        self.linkedOutputCounter = 0
+        self.input = None
+        self.output = None
 
 
 

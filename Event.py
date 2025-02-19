@@ -21,6 +21,9 @@ class EventType(Enum):
     ADD_XNOR_GATE_MODEL = auto()
     ADD_XNOR_GATE_VIEW = auto()
 
+    LINK_NODES_MODEL = auto()
+    LINK_NODES_VIEW = auto()
+
 
 class Event:
     def __init__(self, eventType: EventType, payload=None):
