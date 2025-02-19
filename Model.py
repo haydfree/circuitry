@@ -27,12 +27,19 @@ class Model:
         self.eventBus.publish(Event(EventType.ADD_OUTPUT_VIEW, newOutput))
 
     def addGate(self, gateType: GateType):
+        if gateType == GateType.NOT_GATE:
+            text = "NOT GATE"
+            inputs = 1
+            outputs = 1
+            newGate = Gate(gateType, text)
+            self.eventBus.publish(Event(EventType.ADD_NOT_GATE_VIEW, (text, inputs, outputs)))
         if gateType == GateType.AND_GATE:
             text = "AND GATE"
             inputs = 2
             outputs = 1
-        newGate = Gate(gateType, text)
-        self.eventBus.publish(Event(EventType.ADD_AND_GATE_VIEW, (text, inputs, outputs)))
+            newGate = Gate(gateType, text)
+            self.eventBus.publish(Event(EventType.ADD_AND_GATE_VIEW, (text, inputs, outputs)))
+
 
 
 

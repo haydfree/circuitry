@@ -6,8 +6,20 @@ class EventType(Enum):
     ADD_INPUT_VIEW = auto()
     ADD_OUTPUT_MODEL = auto()
     ADD_OUTPUT_VIEW = auto()
+    ADD_NOT_GATE_MODEL = auto()
+    ADD_NOT_GATE_VIEW = auto()
     ADD_AND_GATE_MODEL = auto()
     ADD_AND_GATE_VIEW = auto()
+    ADD_NAND_GATE_MODEL = auto()
+    ADD_NAND_GATE_VIEW = auto()
+    ADD_OR_GATE_MODEL = auto()
+    ADD_OR_GATE_VIEW = auto()
+    ADD_XOR_GATE_MODEL = auto()
+    ADD_XOR_GATE_VIEW = auto()
+    ADD_NOR_GATE_MODEL = auto()
+    ADD_NOR_GATE_VIEW = auto()
+    ADD_XNOR_GATE_MODEL = auto()
+    ADD_XNOR_GATE_VIEW = auto()
 
 
 class Event:
