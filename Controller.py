@@ -16,13 +16,13 @@ class Controller():
     
     def handleEvent(self, event: Event):
         if event.type == EventType.ADD_INPUT_MODEL:
-            self.model.addInput()
+            self.model.addInput(event.payload)
         
         if event.type == EventType.ADD_INPUT_VIEW:
             self.view.addInput(event.payload.state)
 
         if event.type == EventType.ADD_OUTPUT_MODEL:
-            self.model.addOutput()
+            self.model.addOutput(event.payload)
 
         if event.type == EventType.ADD_OUTPUT_VIEW:
             self.view.addOutput(event.payload.state)
@@ -37,6 +37,6 @@ class Controller():
             self.model.linkNodes(event.payload[0], event.payload[1])
 
         if event.type == EventType.LINK_NODES_VIEW:
-            pass
+            self.view.linkNodes(event.payload[0], event.payload[1]) 
 
 

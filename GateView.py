@@ -28,33 +28,35 @@ class GateView:
         self.inputs = []
         self.outputs = []
 
-        for inp in range(0, numInputs):
-            self.inputs.append(InputView((0,0), self.nodeSize, inp, 0, self.nodeColor))
-
-        for out in range(0, numOutputs):
-            self.outputs.append(OutputView((0,0), self.nodeSize, out, 0, self.nodeColor))
-
         self.font: pygame.font = pygame.font.SysFont("Source Code Pro", self.textSize) 
         self.renderedText = self.font.render(text, True, self.textColor)
         self.rect = pygame.Rect(self.left, self.top, self.width, self.height)
 
         self.updatePos(screen, self.pos)
 
-    def drawInputs(self):
+    def addInputs(self, inputId):
         x = self.left
         yOffset = self.height / (self.numInputs+1)
-        for inp in self.inputs:
-            y = self.top + ((inp.id+1)*yOffset)
+        for idx in range(0, self.numInputs):
+            y = self.top + ((idx+1)*yOffset)
             pos = (x,y)
-            inp.rect = pygame.draw.circle(self.screen, inp.color, pos, self.nodeSize)
+            self.inputs.append(InputView(pos, self.nodeSize, inputId, 0, self.nodeColor))
 
-    def drawOutputs(self):
+    def addOutputs(self, outputId):
         x = self.left + self.width
         yOffset = self.height / (self.numOutputs+1)
-        for out in self.outputs:
-            y = self.top + ((out.id+1)*yOffset)
+        for idx in range(0, self.numOutputs):
+            y = self.top + ((idx+1)*yOffset)
             pos = (x,y)
-            out.rect = pygame.draw.circle(self.screen, out.color, pos, self.nodeSize)
+            self.outputs.append(OutputView(pos, self.nodeSize, outputId, 0, self.nodeColor))
+
+    def drawInputs(self):
+        for inp in self.inputs:
+            inp.rect = pygame.draw.circle(self.screen, inp.color, inp.pos, inp.size)
+
+    def drawOutputs(self):
+        for out in self.outputs:
+            out.rect = pygame.draw.circle(self.screen, out.color, out.pos, out.size)
 
     def updatePos(self, screen, pos):
         self.pos = pos

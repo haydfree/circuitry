@@ -36,6 +36,7 @@ class View:
         self.outputCounter = 0
         self.gateCounter = 0
         self.wireCounter = 0
+        self.nodeCounter = 0
 
         self.buttonTextColor = pygame.Color(200, 200, 200)
         self.backgroundColor = pygame.Color(40,28,52)
@@ -113,9 +114,10 @@ class View:
             inp.pos = (x,yOffset * (inp.id+1))
         y = yOffset * (self.inputCounter + 1)
         pos = (x,y)
-        newInputView = InputView(pos, self.nodeSize, self.inputCounter, state, self.nodeColor)
+        newInputView = InputView(pos, self.nodeSize, self.nodeCounter, state, self.nodeColor)
         self.inputs.append(newInputView)
         self.inputCounter += 1
+        self.nodeCounter += 1
 
     def addOutput(self, state: int):
         workableHeight = self.windowHeight - self.menuHeight
@@ -125,9 +127,10 @@ class View:
             out.pos = (x,yOffset * (out.id+1))
         y = yOffset * (self.outputCounter + 1)
         pos = (x,y)
-        newOutputView = OutputView(pos, self.nodeSize, self.outputCounter, state, self.nodeColor)
+        newOutputView = OutputView(pos, self.nodeSize, self.nodeCounter, state, self.nodeColor)
         self.outputs.append(newOutputView)
         self.outputCounter += 1
+        self.nodeCounter += 1
 
     def addGate(self, gateType: GateType, payload):
         text, numInputs, numOutputs = payload 
@@ -136,7 +139,14 @@ class View:
         pos = (left, top)
         newGateView = GateView(pos, self.gateSize, text, gateType, self.gateCounter, numInputs, numOutputs, self.buttonColor, self.buttonTextColor, self.screen, self.nodeColor, self.gateTextSize)
         self.gates.append(newGateView)
+        newGateView.addInputs(self.nodeCounter)
+        self.nodeCounter += numInputs
+        newGateView.addOutputs(self.nodeCounter)
+        self.nodeCounter += numOutputs
         self.gateCounter += 1
+
+    def linkNodes(self, node1Id, node2Id):
+        pass
 
     def changeColorOnHover(self):
         ho = self.getHoveredObject() 
@@ -213,10 +223,10 @@ class View:
 
             if clicked and hoveredObject is not None:
                 if hoveredObject.type == ButtonType.ADD_INPUT:
-                    self.eventBus.publish(Event(EventType.ADD_INPUT_MODEL))
+                    self.eventBus.publish(Event(EventType.ADD_INPUT_MODEL, hoveredObject.id))
 
                 if hoveredObject.type == ButtonType.ADD_OUTPUT:
-                    self.eventBus.publish(Event(EventType.ADD_OUTPUT_MODEL))
+                    self.eventBus.publish(Event(EventType.ADD_OUTPUT_MODEL, hoveredObject.id))
 
                 if hoveredObject.type == ButtonType.ADD_NOT_GATE:
                     self.eventBus.publish(Event(EventType.ADD_NOT_GATE_MODEL))
@@ -274,7 +284,7 @@ class View:
                         
                         clickedAnotherNode = True
                     print(f"linked node1: {hoveredObject.type} {hoveredObject.id} and node2: {ho2.type} {ho2.id}")
-                    self.eventBus.publish(Event(EventType.LINK_NODES_MODEL, (hoveredObject, ho2)))
+                    self.eventBus.publish(Event(EventType.LINK_NODES_MODEL, (hoveredObject.id, ho2.id)))
                      
 
             
