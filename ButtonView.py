@@ -23,4 +23,8 @@ class ButtonView:
         self.textPos = (self.left+widthDiff/2, self.top+heightDiff/2)
         self.buttonType = buttonType
 
+    def draw(self, screen):
+        pygame.draw.rect(screen, self.color, self.rect) 
+        screen.blit(self.renderedText, self.textPos)
+
 

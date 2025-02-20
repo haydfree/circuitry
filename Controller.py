@@ -15,49 +15,29 @@ class Controller():
         self.eventBus = eventBus
         self.eventBus.subscribe(self)
 
-    def findByIdModel(self, objectId):
-        return self.model.findById(objectId) 
-
-    def findByIdView(self, objectId):
-        return self.view.findById(objectId)
-    
     def handleEvent(self, event: Event):
-        if event.type == EventType.ADD_INPUT_MODEL:
-            self.model.addInput(InputType.CIRCUIT_INPUT)
-        
-        elif event.type == EventType.ADD_INPUT_VIEW:
-            self.view.addInput(event.payload)
-        
-        elif event.type == EventType.ADD_GATE_INPUT_VIEW:
-            gateId, inputId = event.payload
-            self.findByIdView(gateId).addInputs(inputId)
+        # purpose of controller: control the FLOW of the logic
+        # being more explicit here and reducing coupling between functions would make it so much clearer and easier to debug
+        if event.type == EventType.CIRCUIT_INPUT:
+            inputStateAndId = self.model.addInput()
+            self.view.addInput(inputStateAndId)
+            self.view.centerInputPositions()
 
-        elif event.type == EventType.ADD_OUTPUT_MODEL:
-            self.model.addOutput(OutputType.CIRCUIT_OUTPUT)
+        elif event.type == EventType.CIRCUIT_OUTPUT:
+            outputStateAndId = self.model.addOutput()
+            self.view.addOutput(outputStateAndId)
+            self.view.centerOutputPositions()
 
-        elif event.type == EventType.ADD_OUTPUT_VIEW:
-            self.view.addOutput(event.payload)
+        elif event.type == EventType.GATE:
+            self.model.addGate()
+            self.model.addInput()
+            self.view.addGate()
+            self.view.addInput()
 
-        elif event.type == EventType.ADD_GATE_INPUT:
-            self.model.addInput(event.payload)
+        elif event.type == EventType.LINK:
+            self.model.linkNodes()
+            self.view.linkNodes()
 
-        elif event.type == EventType.ADD_GATE_OUTPUT:
-            self.model.addOutput(event.payload)
 
-        elif event.type == EventType.ADD_GATE_OUTPUT_VIEW:
-            gateId, outputId = event.payload
-            self.findByIdView(gateId).addOutputs(outputId)
-
-        elif event.type == EventType.ADD_AND_GATE_MODEL:
-            self.model.addGate(GateType.AND_GATE)
-
-        elif event.type == EventType.ADD_AND_GATE_VIEW:
-            self.view.addGate(event.payload)
-
-        elif event.type == EventType.LINK_NODES_MODEL:
-            self.model.linkNodes(event.payload)
-
-        elif event.type == EventType.LINK_NODES_VIEW:
-            self.view.linkNodes(event.payload) 
 
 

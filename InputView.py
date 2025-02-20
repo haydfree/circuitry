@@ -1,4 +1,6 @@
+import pygame
 from NodeType import NodeType
+
 
 
 class InputView:
@@ -14,6 +16,9 @@ class InputView:
 
         self.input = None
         self.output = None
+
+    def draw(self, screen):
+        self.rect = pygame.draw.circle(screen, self.color, self.pos, self.size)
 
 
 

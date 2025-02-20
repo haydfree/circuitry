@@ -3,11 +3,11 @@ from GateType import GateType
     
 
 class Gate:
-    def __init__(self, gateId, gateType: GateType):
-        self.inputs: List[int] = []
-        self.outputs: List[int] = []
-        self.gates: List[Gate] = []
-        self.gateType = gateType
+    def __init__(self, gateId, gateType: GateType, numInputs, numOutputs):
+        self.objects = {}
+        self.type = gateType
         self.id = gateId
+        self.numInputs = numInputs
+        self.numOutputs = numOutputs
 
 

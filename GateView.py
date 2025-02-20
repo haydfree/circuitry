@@ -39,6 +39,10 @@ class GateView:
 
         self.updatePos(screen, self.pos)
 
+    def draw(self, screen):
+        pygame.draw.rect(screen, self.color, self.rect)
+        screen.blit(self.renderedText, self.textPos)
+
     def addInputs(self, inputId):
         x = self.left
         yOffset = self.height / (self.numInputs+1)

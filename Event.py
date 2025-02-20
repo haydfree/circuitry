@@ -2,34 +2,10 @@ from enum import Enum, auto
 
 
 class EventType(Enum):
-    ADD_INPUT_MODEL = auto()
-    ADD_INPUT_VIEW = auto()
-    ADD_OUTPUT_MODEL = auto()
-    ADD_OUTPUT_VIEW = auto()
-    ADD_NOT_GATE_MODEL = auto()
-    ADD_NOT_GATE_VIEW = auto()
-    ADD_AND_GATE_MODEL = auto()
-    ADD_AND_GATE_VIEW = auto()
-    ADD_NAND_GATE_MODEL = auto()
-    ADD_NAND_GATE_VIEW = auto()
-    ADD_OR_GATE_MODEL = auto()
-    ADD_OR_GATE_VIEW = auto()
-    ADD_XOR_GATE_MODEL = auto()
-    ADD_XOR_GATE_VIEW = auto()
-    ADD_NOR_GATE_MODEL = auto()
-    ADD_NOR_GATE_VIEW = auto()
-    ADD_XNOR_GATE_MODEL = auto()
-    ADD_XNOR_GATE_VIEW = auto()
-
-    LINK_NODES_MODEL = auto()
-    LINK_NODES_VIEW = auto()
-
-    ADD_GATE_INPUT = auto()
-    ADD_GATE_OUTPUT = auto()
-
-    ADD_GATE_INPUT_VIEW = auto()
-    ADD_GATE_OUTPUT_VIEW = auto()
-
+    CIRCUIT_INPUT = auto()
+    CIRCUIT_OUTPUT = auto()
+    GATE = auto()
+    LINK = auto()
 
 class Event:
     def __init__(self, eventType: EventType, payload=None):
