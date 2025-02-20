@@ -12,6 +12,8 @@ from ButtonType import ButtonType
 from GateType import GateType
 from NodeType import NodeType
 from WireView import WireView
+from InputType import InputType
+from OutputType import OutputType
 
 
 class View:
@@ -36,7 +38,6 @@ class View:
         self.outputCounter = 0
         self.gateCounter = 0
         self.wireCounter = 0
-        self.nodeCounter = 0
 
         self.buttonTextColor = pygame.Color(200, 200, 200)
         self.backgroundColor = pygame.Color(40,28,52)
@@ -54,6 +55,24 @@ class View:
         self.addButton("ADD INPUT", (50,650), ButtonType.ADD_INPUT)
         self.addButton("ADD OUTPUT", (self.windowWidth - self.nodeMargin*2, 650), ButtonType.ADD_OUTPUT)
         self.addButton("ADD AND GATE", ((self.windowWidth-self.gateSize[0])/2, 650), ButtonType.ADD_AND_GATE)
+
+    def findById(self, objectId):
+        for inp in self.inputs:
+            if inp.id == objectId:
+                return inp
+        for out in self.outputs:
+            if out.id == objectId:
+                return out
+        for gate in self.gates:
+            if gate.id == objectId:
+                return gate
+            for inp in gate.inputs:
+                if inp.id == objectId:
+                    return inp
+            for out in gate.outputs:
+                if out.id == objectId:
+                    return out
+        return None
 
     def run(self):
         while self.running:
@@ -106,47 +125,50 @@ class View:
         self.buttons.append(newButtonView)
         self.buttonCounter += 1
 
-    def addInput(self, state: int):
+    def addInput(self, payload):
+        inputId, state = payload 
         workableHeight = self.windowHeight - self.menuHeight
         x = self.nodeMargin
         yOffset = workableHeight / (self.inputCounter + 2)
-        for inp in self.inputs:
-            inp.pos = (x,yOffset * (inp.id+1))
+        for idx, inp in enumerate(self.inputs):
+            inp.pos = (x,yOffset * (idx+1))
         y = yOffset * (self.inputCounter + 1)
         pos = (x,y)
-        newInputView = InputView(pos, self.nodeSize, self.nodeCounter, state, self.nodeColor)
+        newInputView = InputView(pos, self.nodeSize, inputId, state, self.nodeColor)
         self.inputs.append(newInputView)
         self.inputCounter += 1
-        self.nodeCounter += 1
+        print(f"inputId in view: {inputId}")
 
-    def addOutput(self, state: int):
+    def addOutput(self, payload):
+        outputId, state = payload
         workableHeight = self.windowHeight - self.menuHeight
         x = self.windowWidth - self.nodeMargin
         yOffset = workableHeight / (self.outputCounter + 2)
-        for out in self.outputs:
-            out.pos = (x,yOffset * (out.id+1))
+        for idx, out in enumerate(self.outputs):
+            out.pos = (x,yOffset * (idx+1))
         y = yOffset * (self.outputCounter + 1)
         pos = (x,y)
-        newOutputView = OutputView(pos, self.nodeSize, self.nodeCounter, state, self.nodeColor)
+        newOutputView = OutputView(pos, self.nodeSize, outputId, state, self.nodeColor)
         self.outputs.append(newOutputView)
         self.outputCounter += 1
-        self.nodeCounter += 1
+        print(f"outputId in view: {outputId}")
 
-    def addGate(self, gateType: GateType, payload):
-        text, numInputs, numOutputs = payload 
+    def addGate(self, payload):
+        gateId, gateType, numInputs, numOutputs = payload 
         left = self.windowWidth / 2 - (self.gateSize[0]/2)
         top = ((self.windowHeight - self.menuHeight) / 2) - (self.gateSize[1]/2) 
         pos = (left, top)
-        newGateView = GateView(pos, self.gateSize, text, gateType, self.gateCounter, numInputs, numOutputs, self.buttonColor, self.buttonTextColor, self.screen, self.nodeColor, self.gateTextSize)
+        newGateView = GateView(pos, self.gateSize, gateType, gateId, numInputs, numOutputs, self.buttonColor, self.buttonTextColor, self.screen, self.nodeColor, self.gateTextSize)
+        inputPayload = (InputType.GATE_INPUT, gateId)
+        outputPayload = (OutputType.GATE_OUTPUT, gateId)
+        self.eventBus.publish(Event(EventType.ADD_GATE_INPUT, inputPayload))
+        self.eventBus.publish(Event(EventType.ADD_GATE_OUTPUT, outputPayload))
         self.gates.append(newGateView)
-        newGateView.addInputs(self.nodeCounter)
-        self.nodeCounter += numInputs
-        newGateView.addOutputs(self.nodeCounter)
-        self.nodeCounter += numOutputs
         self.gateCounter += 1
+        print(f"gateId in view: {gateId}")
 
-    def linkNodes(self, node1Id, node2Id):
-        pass
+    def linkNodes(self, payload):
+        node1Id, node2Id = payload
 
     def changeColorOnHover(self):
         ho = self.getHoveredObject() 
@@ -223,10 +245,10 @@ class View:
 
             if clicked and hoveredObject is not None:
                 if hoveredObject.type == ButtonType.ADD_INPUT:
-                    self.eventBus.publish(Event(EventType.ADD_INPUT_MODEL, hoveredObject.id))
+                    self.eventBus.publish(Event(EventType.ADD_INPUT_MODEL))
 
                 if hoveredObject.type == ButtonType.ADD_OUTPUT:
-                    self.eventBus.publish(Event(EventType.ADD_OUTPUT_MODEL, hoveredObject.id))
+                    self.eventBus.publish(Event(EventType.ADD_OUTPUT_MODEL))
 
                 if hoveredObject.type == ButtonType.ADD_NOT_GATE:
                     self.eventBus.publish(Event(EventType.ADD_NOT_GATE_MODEL))
@@ -255,14 +277,12 @@ class View:
                 if event.type == pygame.MOUSEBUTTONUP:
                     self.dragging = False
                 
-                # drag gates around
                 if event.type == pygame.MOUSEMOTION and self.dragging and hoveredObject in self.gates:
                     mousePos = pygame.mouse.get_pos()
                     gate = self.gates[hoveredObject.id]
                     pos = ((mousePos[0]-gate.width/2),(mousePos[1]-gate.height/2))
                     gate.updatePos(self.screen, pos)
                 
-                # link node to another node
                 clickedNode = hoveredObject in self.inputs or hoveredObject in self.outputs
                 for gate in self.gates:
                     if hoveredObject in gate.inputs or hoveredObject in gate.outputs:
@@ -284,7 +304,8 @@ class View:
                         
                         clickedAnotherNode = True
                     print(f"linked node1: {hoveredObject.type} {hoveredObject.id} and node2: {ho2.type} {ho2.id}")
-                    self.eventBus.publish(Event(EventType.LINK_NODES_MODEL, (hoveredObject.id, ho2.id)))
+                    modelPayload = (hoveredObject.id, ho2.id)
+                    self.eventBus.publish(Event(EventType.LINK_NODES_MODEL, modelPayload))
                      
 
             
