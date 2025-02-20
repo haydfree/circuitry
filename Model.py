@@ -1,11 +1,6 @@
-from Input import Input
-from Output import Output
-from Gate import Gate
+from Port import Port, PortType
+from Gate import Gate, GateType
 from Event import EventType, Event, EventBus
-from GateType import GateType
-from NodeType import NodeType
-from InputType import InputType
-from OutputType import OutputType
 
 class Model:
     def __init__(self, eventBus: EventBus):
@@ -14,23 +9,13 @@ class Model:
         self.objects = {}
         self.objectCounter = 0
 
-    def addInput(self):
-        state = 0
-        inputId = self.objectCounter
-        newInput = Input(inputId, state, None, None)
-        self.objects[newInput.id] = newInput
+    def addPort(self, portType):
+        portId = self.objectCounter
+        newPort = Port(portId, portType)
+        self.objects[newPort.id] = newPort
         self.objectCounter += 1
 
-        return (newInput.state, newInput.id)
-
-    def addOutput(self):
-        state = 0
-        outputId = self.objectCounter
-        newOutput = Output(outputId, state, None, None)
-        self.objects[newOutput.id] = newOutput
-        self.objectCounter += 1
-
-        return (newOutput.state, newOutput.id)
+        return newPort.id
 
     def addGate(self, gateType: GateType):
         gateId = self.objectCounter
@@ -47,14 +32,18 @@ class Model:
 
     def addGateNodes(self, gateId):
         gate = self.objects[gateId] 
-        for inp in range(gate.numInputs):
-            newInput = self.addInput()
-            self.objects[newInput.id] = newInput
-            gate.objects[newInput.id] = newInput
-        for out in range(gate.numOutputs):
-            newOutput = self.addOutput()
-            self.objects[newOutput.id] = newOutput
-            gate.objects[newOutput.id] = newOutput
+        inputIds = []
+        outputIds = []
+        for idx in range(gate.numInputs):
+            _, newInputId = self.addInput()
+            gate.objects[newInputId] = self.objects[newInputId]
+            inputIds.append(newInputId)
+        for idx in range(gate.numOutputs):
+            _, newOutputId = self.addOutput()
+            gate.objects[newOutputId] = self.objects[newOutputId]
+            outputIds.append(newOutputId)
+
+        return (inputIds, outputIds)
 
     def linkNodes(self, nodeIds):
         node1Id, node2Id = nodeIds

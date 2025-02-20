@@ -1,16 +1,16 @@
 import pygame
-from NodeType import NodeType
 
 
-class OutputView:
-    def __init__(self, pos, size, outputId, state, color):
+
+class PortView:
+    def __init__(self, pos, size, inputId, state, color):
         self.pos = pos
         self.size = size
         self.x, self.y = pos
-        self.id = outputId
+        self.id = inputId
         self.state = state 
         self.rect = None
-        self.type = NodeType.OUTPUT
+        self.type = None 
         self.color = color
 
         self.input = None
@@ -18,5 +18,6 @@ class OutputView:
 
     def draw(self, screen):
         self.rect = pygame.draw.circle(screen, self.color, self.pos, self.size)
+
 
 

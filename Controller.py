@@ -29,10 +29,13 @@ class Controller():
             self.view.centerOutputPositions()
 
         elif event.type == EventType.GATE:
-            self.model.addGate()
-            self.model.addInput()
-            self.view.addGate()
-            self.view.addInput()
+            gateType = event.payload
+            gateId, _, numInputs, numOutputs = self.model.addGate(gateType)
+            inputIds, outputIds = self.model.addGateNodes(gateId)
+            payload = gateId, gateType, numInputs, numOutputs
+            gateView = self.view.addGate(payload)
+            gateView.addInputs(inputIds)
+            gateView.addOutputs(outputIds)
 
         elif event.type == EventType.LINK:
             self.model.linkNodes()

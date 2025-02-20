@@ -29,7 +29,6 @@ class View:
         self.windowHeight = windowHeight
 
         self.objects = {}
-        self.uiComponents = {}
 
         self.buttonCounter = 0
         self.inputCounter = 0
@@ -109,23 +108,37 @@ class View:
         self.objects[newGateView.id] = newGateView
         self.gateCounter += 1
 
+        return newGateView
+
     def centerInputPositions(self):
         workableHeight = self.windowHeight - self.menuHeight
-        yOffset = workableHeight / (self.inputCounter + 1)
+        coe = self.inputCounter + 1
+        yOffset = workableHeight / coe 
         x = self.nodeMargin
+        counter = 1
         for idx in self.objects.keys():
             obj = self.objects[idx]
             if type(obj) is InputView:
-                obj.pos = x, yOffset * (idx+1)
+                y = yOffset*counter
+                obj.pos = x,y 
+                obj.x = x
+                obj.y = y
+                counter += 1
 
     def centerOutputPositions(self):
         workableHeight = self.windowHeight - self.menuHeight
-        yOffset = workableHeight / (self.outputCounter + 1)
+        coe = self.outputCounter + 1
+        yOffset = workableHeight / coe
         x = self.windowWidth - self.nodeMargin
+        counter = 1
         for idx in self.objects.keys():
             obj = self.objects[idx]
             if type(obj) is OutputView:
-                obj.pos = x, yOffset * (idx+1)
+                y = yOffset*counter
+                obj.pos = x,y 
+                obj.x = x
+                obj.y = y
+                counter += 1
 
     def linkNodes(self, payload):
         node1Id, node2Id = payload
@@ -138,6 +151,8 @@ class View:
 
     def resetColor(self):
         ho = self.getHoveredObject()
+        if ho is not None:
+            return
         for idx in self.objects.keys():
             obj = self.objects[idx]
             if type(obj) is ButtonView or type(obj) is GateView:
@@ -183,14 +198,14 @@ class View:
     def dragGate(self, event, obj):
         if event.type == pygame.MOUSEBUTTONDOWN:
             self.dragging = True
-        else:
+        elif event.type == pygame.MOUSEBUTTONUP:
             self.dragging = False
         
-        if event.type == pygame.MOUSEMOTION and self.dragging and type(obj) is GateType:
+        if self.dragging and type(obj) is GateView:
             mousePos = pygame.mouse.get_pos()
             pos = ((mousePos[0]-obj.width/2),(mousePos[1]-obj.height/2))
             obj.updatePos(self.screen, pos)
-
+            
     def eventLoop(self):
         for event in pygame.event.get():
             hoveredObject = self.getHoveredObject()
