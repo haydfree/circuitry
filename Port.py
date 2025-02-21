@@ -8,8 +8,9 @@ class PortType(Enum):
     GATE_OUTPUT = auto()
 
 class Port:
-    def __init__(self, portId):
-        self.id = inputId
+    def __init__(self, portId, portType):
+        self.id = portId
+        self.type = portType
         self.state = None 
         self.input = None
         self.output = None

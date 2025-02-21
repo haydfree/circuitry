@@ -2,10 +2,8 @@ import pygame
 from Model import Model
 from View import View
 from Event import EventType, Event, EventBus
-from GateType import GateType
-from NodeType import NodeType
-from InputType import InputType
-from OutputType import OutputType
+from Gate import GateType
+from Port import PortType
 
 
 class Controller():
@@ -19,23 +17,28 @@ class Controller():
         # purpose of controller: control the FLOW of the logic
         # being more explicit here and reducing coupling between functions would make it so much clearer and easier to debug
         if event.type == EventType.CIRCUIT_INPUT:
-            inputStateAndId = self.model.addInput()
-            self.view.addInput(inputStateAndId)
-            self.view.centerInputPositions()
+            idAndType = self.model.addPort(PortType.CIRCUIT_INPUT)
+            self.view.addPort(idAndType)
+            self.view.centerCircuitPorts()
 
         elif event.type == EventType.CIRCUIT_OUTPUT:
-            outputStateAndId = self.model.addOutput()
-            self.view.addOutput(outputStateAndId)
-            self.view.centerOutputPositions()
+            idAndType = self.model.addPort(PortType.CIRCUIT_OUTPUT)
+            self.view.addPort(idAndType)
+            self.view.centerCircuitPorts()
 
         elif event.type == EventType.GATE:
             gateType = event.payload
             gateId, _, numInputs, numOutputs = self.model.addGate(gateType)
-            inputIds, outputIds = self.model.addGateNodes(gateId)
             payload = gateId, gateType, numInputs, numOutputs
             gateView = self.view.addGate(payload)
-            gateView.addInputs(inputIds)
-            gateView.addOutputs(outputIds)
+
+            for idx in range(numInputs):
+                idAndType = self.model.addPort(PortType.GATE_INPUT, gateId)
+                self.view.addPort(idAndType, gateId)
+            for idx in range(numOutputs):
+                idAndType = self.model.addPort(PortType.GATE_OUTPUT, gateId)
+                self.view.addPort(idAndType, gateId)
+            gateView.centerGatePorts()
 
         elif event.type == EventType.LINK:
             self.model.linkNodes()

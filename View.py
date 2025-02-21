@@ -1,19 +1,12 @@
 import pygame
 import pdb
-import time
-from datetime import datetime
 from typing import Tuple
+from Port import PortType
+from Gate import GateType
 from Event import EventType, Event, EventBus
-from InputView import InputView
-from OutputView import OutputView
-from ButtonView import ButtonView
+from ButtonView import ButtonView, ButtonType
 from GateView import GateView
-from ButtonType import ButtonType
-from GateType import GateType
-from NodeType import NodeType
-from WireView import WireView
-from InputType import InputType
-from OutputType import OutputType
+from PortView import PortView
 
 
 class View:
@@ -31,26 +24,22 @@ class View:
         self.objects = {}
 
         self.buttonCounter = 0
-        self.inputCounter = 0
-        self.outputCounter = 0
-        self.gateCounter = 0
-        self.wireCounter = 0
 
         self.buttonTextColor = pygame.Color(200, 200, 200)
         self.backgroundColor = pygame.Color(40,28,52)
         self.buttonColor = pygame.Color(50, 50, 50)
-        self.nodeColor = pygame.Color(20, 20, 20)
+        self.portColor = pygame.Color(20, 20, 20)
         self.buttonSize = (80, 50)
         self.buttonTextSize = 10
-        self.nodeSize = 10
+        self.portSize = 10
         self.menuHeight = 100
-        self.nodeMargin = 50
+        self.portMargin = 50
         self.gateSize = (120,120)
         self.gateTextSize = 20
         self.dragging = False
 
         self.addButton("ADD INPUT", (50,650), ButtonType.ADD_INPUT)
-        self.addButton("ADD OUTPUT", (self.windowWidth - self.nodeMargin*2, 650), ButtonType.ADD_OUTPUT)
+        self.addButton("ADD OUTPUT", (self.windowWidth - self.portMargin*2, 650), ButtonType.ADD_OUTPUT)
         self.addButton("ADD AND GATE", ((self.windowWidth-self.gateSize[0])/2, 650), ButtonType.ADD_AND_GATE)
 
     def run(self):
@@ -85,63 +74,62 @@ class View:
         self.objects[newButtonView.id] = newButtonView
         self.buttonCounter += 1
 
-    def addInput(self, inputIdAndState):
-        state, inputId = inputIdAndState 
+    def addPort(self, idAndType, gateId=None):
+        portId, portType = idAndType
         pos = (0,0) 
-        newInputView = InputView(pos, self.nodeSize, inputId, state, self.nodeColor)
-        self.objects[newInputView.id] = newInputView
-        self.inputCounter += 1
+        portView = PortView(pos, self.portSize, portId, self.portColor, portType)
+        self.objects[portView.id] = portView
 
-    def addOutput(self, outputIdAndState):
-        state, outputId = outputIdAndState
-        pos = (0,0)
-        newOutputView = OutputView(pos, self.nodeSize, outputId, state, self.nodeColor)
-        self.objects[newOutputView.id] = newOutputView
-        self.outputCounter += 1
+        if gateId is not None:
+            self.objects[gateId].objects[portView.id] = portView
 
     def addGate(self, payload):
         gateId, gateType, numInputs, numOutputs = payload 
         left = self.windowWidth / 2 - (self.gateSize[0]/2)
         top = ((self.windowHeight - self.menuHeight) / 2) - (self.gateSize[1]/2) 
         pos = (left, top)
-        newGateView = GateView(pos, self.gateSize, gateType, gateId, numInputs, numOutputs, self.buttonColor, self.buttonTextColor, self.screen, self.nodeColor, self.gateTextSize)
-        self.objects[newGateView.id] = newGateView
-        self.gateCounter += 1
+        gateView = GateView(pos, self.gateSize, gateType, gateId, numInputs, numOutputs, self.buttonColor, self.buttonTextColor, self.screen, self.portColor, self.gateTextSize)
+        self.objects[gateView.id] = gateView
+    
+        return gateView
 
-        return newGateView
-
-    def centerInputPositions(self):
+    def centerCircuitPorts(self):
         workableHeight = self.windowHeight - self.menuHeight
-        coe = self.inputCounter + 1
-        yOffset = workableHeight / coe 
-        x = self.nodeMargin
-        counter = 1
+        numInputs = self.count(PortType.CIRCUIT_INPUT)
+        numOutputs = self.count(PortType.CIRCUIT_OUTPUT)
+        slopeIn = workableHeight / (numInputs+1)
+        slopeOut = workableHeight / (numOutputs+1)
+        xIn = self.portMargin
+        xOut = self.windowWidth - self.portMargin 
+        counterIn = 1
+        counterOut = 1
         for idx in self.objects.keys():
             obj = self.objects[idx]
-            if type(obj) is InputView:
-                y = yOffset*counter
+            if obj.type == PortType.CIRCUIT_INPUT:
+                x = xIn
+                y = slopeIn * counterIn
                 obj.pos = x,y 
                 obj.x = x
                 obj.y = y
-                counter += 1
-
-    def centerOutputPositions(self):
-        workableHeight = self.windowHeight - self.menuHeight
-        coe = self.outputCounter + 1
-        yOffset = workableHeight / coe
-        x = self.windowWidth - self.nodeMargin
-        counter = 1
-        for idx in self.objects.keys():
-            obj = self.objects[idx]
-            if type(obj) is OutputView:
-                y = yOffset*counter
+                counterIn+=1
+            elif obj.type == PortType.CIRCUIT_OUTPUT:
+                x = xOut
+                y = slopeOut * counterOut
                 obj.pos = x,y 
                 obj.x = x
                 obj.y = y
-                counter += 1
+                counterOut+=1
 
-    def linkNodes(self, payload):
-        node1Id, node2Id = payload
+    def count(self, objectType):
+        counter = 0
+        for idx in self.objects.keys():
+            obj = self.objects[idx]
+            if obj.type == objectType:
+                counter += 1
+        return counter
+
+    def linkPorts(self, payload):
+        port1Id, port2Id = payload
 
     def changeColorOnHover(self):
         ho = self.getHoveredObject() 
@@ -158,7 +146,7 @@ class View:
             if type(obj) is ButtonView or type(obj) is GateView:
                 obj.color = self.buttonColor
             else:
-                obj.color = self.nodeColor
+                obj.color = self.portColor
 
     def getHoveredObject(self):
         mousePos = pygame.mouse.get_pos()
@@ -170,28 +158,29 @@ class View:
                 return obj
         return None
 
-    def getHoveredNode(self):
+    def getHoveredPort(self):
         obj = self.getHoveredObject()
-        if type(obj) is GateType:
+        if type(obj) is PortView:
             return obj
         return None
 
     def getAreaMap(self):
         pass
 
-    def checkForNodeLinkAction(self):
-        ho1 = self.getHoveredNode()
+    def checkForPortLinkAction(self):
+        ho1 = self.getHoveredPort()
 
         if ho1 is None:
             return
 
         notValid = True
         while notValid:
-            ho2 = self.getHoveredNode()
-            ev2 = pygame.event.wait()
-            if (ho2 is None) or (ho1 == ho2) or (ev2.type != pygame.MOUSEBUTTONDOWN):
+            ho2 = self.getHoveredPort()
+            print(f"ho1: {ho1}, ho2: {ho2}")
+            if (ho2 is None) or (ho1 == ho2):
                 continue
-            notValid = False
+            if pygame.mouse.get_pressed()[0]:
+                notValid = False
 
         return (ho1, ho2)
 
@@ -223,7 +212,7 @@ class View:
             elif hoveredObject.type == ButtonType.ADD_AND_GATE:
                 self.eventBus.publish(Event(EventType.GATE, GateType.AND_GATE))
 
-            self.checkForNodeLinkAction()
+            self.checkForPortLinkAction()
             self.dragGate(event, hoveredObject)
             
 

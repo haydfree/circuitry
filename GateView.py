@@ -1,11 +1,10 @@
 import pygame
 from Gate import GateType
-from InputView import InputView
-from OutputView import OutputView
+from Port import Port, PortType
 
 
 class GateView:
-    def __init__(self, pos, size, gateType, gateId, numInputs, numOutputs, color, textColor, screen, nodeColor, textSize):
+    def __init__(self, pos, size, gateType, gateId, numInputs, numOutputs, color, textColor, screen, portColor, textSize):
         self.pos = pos
         self.size = size
         self.textSize = textSize
@@ -19,9 +18,9 @@ class GateView:
         self.numOutputs = numOutputs
         self.rect = None
         self.color = color
-        self.nodeColor = nodeColor
+        self.portColor = portColor
         self.textColor = textColor
-        self.nodeSize = 10
+        self.portSize = 10
         self.screen = screen
 
         if gateType == GateType.NOT_GATE:
@@ -44,29 +43,31 @@ class GateView:
 
         for idx in self.objects.keys():
             obj = self.objects[idx]
-            obj.rect = pygame.draw.circle(screen, self.nodeColor, obj.pos, self.nodeSize)
+            obj.rect = pygame.draw.circle(screen, self.portColor, obj.pos, self.portSize)
 
-    def addInputs(self, inputIds):
-        x = self.left
-        yOffset = self.height / (self.numInputs+1)
-        for idx, inputId in enumerate(inputIds):
-            y = self.top + ((idx+1)*yOffset)
-            pos = (x,y)
-            newInputView = InputView(pos, self.nodeSize, inputId, 0, self.nodeColor)
-            newInputView.x = x
-            newInputView.y = y
-            self.objects[newInputView.id] = newInputView
-
-    def addOutputs(self, outputIds):
-        x = self.left + self.width
-        yOffset = self.height / (self.numOutputs+1)
-        for idx, outputId in enumerate(outputIds): 
-            y = self.top + ((idx+1)*yOffset)
-            pos = (x,y)
-            newOutputView = OutputView(pos, self.nodeSize, outputId, 0, self.nodeColor)
-            newOutputView.x = x
-            newOutputView.y = y
-            self.objects[newOutputView.id] = newOutputView
+    def centerGatePorts(self):
+        xIn = self.left
+        xOut = self.width + self.left
+        slopeIn = self.height / (self.numInputs+1)
+        slopeOut = self.height / (self.numOutputs+1)
+        counterIn = 1
+        counterOut = 1
+        for idx in self.objects.keys():
+            obj = self.objects[idx]
+            if obj.type == PortType.GATE_INPUT:
+                x = xIn
+                y = self.top + slopeIn * counterIn
+                obj.pos = x,y 
+                obj.x = x
+                obj.y = y
+                counterIn+=1
+            elif obj.type == PortType.GATE_OUTPUT:
+                x = xOut
+                y = self.top + slopeOut * counterOut
+                obj.pos = x,y 
+                obj.x = x
+                obj.y = y
+                counterOut+=1
 
     def updatePos(self, screen, pos):
         xOffset = self.left - pos[0]
@@ -81,12 +82,12 @@ class GateView:
         self.rect.update(pos, (self.width, self.height)) 
 
         for idx in self.objects.keys():
-            node = self.objects[idx]
-            node.x -= xOffset
-            node.y -= yOffset
-            node.pos = (node.x,node.y)
-            #node.rect = pygame.draw.circle(screen, self.nodeColor, node.pos, node.size) ??????????? like why????
+            port = self.objects[idx]
+            port.x -= xOffset
+            port.y -= yOffset
+            port.pos = (port.x,port.y)
+            #port.rect = pygame.draw.circle(screen, self.portColor, port.pos, port.size) ??????????? like why????
             #pygame is fucking trash for this bruh
-            node.rect.update(node.pos, (node.size,node.size))
+            port.rect.update(port.pos, (port.size,port.size))
 
 

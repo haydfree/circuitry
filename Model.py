@@ -9,13 +9,16 @@ class Model:
         self.objects = {}
         self.objectCounter = 0
 
-    def addPort(self, portType):
+    def addPort(self, portType, gateId=None):
         portId = self.objectCounter
         newPort = Port(portId, portType)
         self.objects[newPort.id] = newPort
         self.objectCounter += 1
 
-        return newPort.id
+        if gateId is not None:
+            self.objects[gateId].objects[newPort.id] = newPort
+
+        return newPort.id, newPort.type
 
     def addGate(self, gateType: GateType):
         gateId = self.objectCounter
@@ -30,7 +33,7 @@ class Model:
 
         return (newGate.id, newGate.type, newGate.numInputs, newGate.numOutputs)
 
-    def addGateNodes(self, gateId):
+    def addGatePorts(self, gateId):
         gate = self.objects[gateId] 
         inputIds = []
         outputIds = []
@@ -45,11 +48,11 @@ class Model:
 
         return (inputIds, outputIds)
 
-    def linkNodes(self, nodeIds):
-        node1Id, node2Id = nodeIds
-        node1 = self.objects[node1Id]
-        node2 = self.objects[node2Id]
-        node2.input = node1
-        node1.output = node2
+    def linkPorts(self, portIds):
+        port1Id, port2Id = portIds
+        port1 = self.objects[port1Id]
+        port2 = self.objects[port2Id]
+        port2.input = port1
+        port1.output = port2
 
 
