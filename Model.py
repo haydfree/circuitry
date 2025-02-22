@@ -31,21 +31,16 @@ class Model:
         self.objects[newGate.id] = newGate
         self.objectCounter += 1
 
-        return (newGate.id, newGate.type, newGate.numInputs, newGate.numOutputs)
+        return (newGate.id, newGate.numInputs, newGate.numOutputs)
 
     def addGatePorts(self, gateId):
-        gate = self.objects[gateId] 
+        gate = self.objects[gateId]
         inputIds = []
         outputIds = []
         for idx in range(gate.numInputs):
-            _, newInputId = self.addInput()
-            gate.objects[newInputId] = self.objects[newInputId]
-            inputIds.append(newInputId)
+            inputIds.append(self.addPort(PortType.GATE_INPUT, gateId)[0])
         for idx in range(gate.numOutputs):
-            _, newOutputId = self.addOutput()
-            gate.objects[newOutputId] = self.objects[newOutputId]
-            outputIds.append(newOutputId)
-
+            outputIds.append(self.addPort(PortType.GATE_OUTPUT, gateId)[0])
         return (inputIds, outputIds)
 
     def linkPorts(self, portIds):
@@ -53,6 +48,34 @@ class Model:
         port1 = self.objects[port1Id]
         port2 = self.objects[port2Id]
         port2.input = port1
+        port2.state = port1.state
         port1.output = port2
+
+    def stateChange(self, portId):
+        p = self.objects[portId]
+        p.state = not p.state
+
+    def stateVerify(self):
+        stateMap = {}
+        for idx in self.objects.keys():
+            obj = self.objects[idx]
+            if type(obj) is Port:
+                if obj.type == PortType.CIRCUIT_INPUT:
+                    if obj.output is not None:
+                        obj.output.state = obj.state
+                elif obj.type == PortType.CIRCUIT_OUTPUT:
+                    if obj.input is not None:
+                        obj.state = obj.input.state
+                elif obj.type == PortType.GATE_INPUT:
+                    if obj.input is not None:
+                        obj.state = obj.input.state
+                     
+            elif type(obj) is GateType:
+                if obj.inputIds and obj.outputIds:
+                    obj.run()
+
+                stateMap[obj.id] = obj.state
+        return stateMap
+        
 
 

@@ -22,6 +22,7 @@ class GateView:
         self.textColor = textColor
         self.portSize = 10
         self.screen = screen
+        self.oldColor = color
 
         if gateType == GateType.NOT_GATE:
             self.text = "NOT GATE"

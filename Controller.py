@@ -14,36 +14,41 @@ class Controller():
         self.eventBus.subscribe(self)
 
     def handleEvent(self, event: Event):
-        # purpose of controller: control the FLOW of the logic
-        # being more explicit here and reducing coupling between functions would make it so much clearer and easier to debug
         if event.type == EventType.CIRCUIT_INPUT:
             idAndType = self.model.addPort(PortType.CIRCUIT_INPUT)
             self.view.addPort(idAndType)
             self.view.centerCircuitPorts()
+            self.view.updateWires()
 
         elif event.type == EventType.CIRCUIT_OUTPUT:
             idAndType = self.model.addPort(PortType.CIRCUIT_OUTPUT)
             self.view.addPort(idAndType)
             self.view.centerCircuitPorts()
+            self.view.updateWires()
 
         elif event.type == EventType.GATE:
             gateType = event.payload
-            gateId, _, numInputs, numOutputs = self.model.addGate(gateType)
+            gateId, numInputs, numOutputs = self.model.addGate(gateType)
+            portIds = self.model.addGatePorts(gateId)
             payload = gateId, gateType, numInputs, numOutputs
             gateView = self.view.addGate(payload)
-
-            for idx in range(numInputs):
-                idAndType = self.model.addPort(PortType.GATE_INPUT, gateId)
-                self.view.addPort(idAndType, gateId)
-            for idx in range(numOutputs):
-                idAndType = self.model.addPort(PortType.GATE_OUTPUT, gateId)
-                self.view.addPort(idAndType, gateId)
+            self.view.addGatePorts(gateId, portIds)
             gateView.centerGatePorts()
 
         elif event.type == EventType.LINK:
-            self.model.linkNodes()
-            self.view.linkNodes()
+            portIds = event.payload
+            self.model.linkPorts(portIds)
+            self.view.linkPorts(portIds)
+            self.view.addWire(portIds)
 
+        elif event.type == EventType.STATE_CHANGE:
+            portId = event.payload
+            self.model.stateChange(portId)
+            self.view.stateChange(portId)
+        
+        elif event.type == EventType.STATE_VERIFY:
+            stateMap = self.model.stateVerify()
+            self.view.stateVerify(stateMap)
 
 
 

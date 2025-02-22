@@ -1,5 +1,6 @@
 import pygame
 import pdb
+import time
 from typing import Tuple
 from Port import PortType
 from Gate import GateType
@@ -7,6 +8,7 @@ from Event import EventType, Event, EventBus
 from ButtonView import ButtonView, ButtonType
 from GateView import GateView
 from PortView import PortView
+from WireView import WireView
 
 
 class View:
@@ -20,10 +22,11 @@ class View:
         self.frameRate = 60
         self.windowWidth = windowWidth
         self.windowHeight = windowHeight
+        self.hoveredObject = None
 
         self.objects = {}
-
         self.buttonCounter = 0
+        self.wireCounter = 0
 
         self.buttonTextColor = pygame.Color(200, 200, 200)
         self.backgroundColor = pygame.Color(40,28,52)
@@ -37,11 +40,12 @@ class View:
         self.gateSize = (120,120)
         self.gateTextSize = 20
         self.dragging = False
+        self.wireColor = (0,0,0)
 
         self.addButton("ADD INPUT", (50,650), ButtonType.ADD_INPUT)
         self.addButton("ADD OUTPUT", (self.windowWidth - self.portMargin*2, 650), ButtonType.ADD_OUTPUT)
         self.addButton("ADD AND GATE", ((self.windowWidth-self.gateSize[0])/2, 650), ButtonType.ADD_AND_GATE)
-
+ 
     def run(self):
         while self.running:
             self.drawScreen()
@@ -52,8 +56,8 @@ class View:
 
         self.drawUI()
         self.drawObjects()
+        self.changeColorWithState()
         self.changeColorOnHover()
-        self.resetColor()
 
         pygame.display.flip()
         self.clock.tick(self.frameRate)
@@ -90,9 +94,42 @@ class View:
         pos = (left, top)
         gateView = GateView(pos, self.gateSize, gateType, gateId, numInputs, numOutputs, self.buttonColor, self.buttonTextColor, self.screen, self.portColor, self.gateTextSize)
         self.objects[gateView.id] = gateView
-    
+
         return gateView
 
+    def addGatePorts(self, gateId, portIds):
+        inputPortIds, outputPortIds = portIds
+        gate = self.objects[gateId]
+        for portId in inputPortIds:
+            self.addPort((portId, PortType.GATE_INPUT), gateId)
+        for portId in outputPortIds:
+            self.addPort((portId, PortType.GATE_OUTPUT), gateId)
+
+    def addWire(self, portIds):
+        p1, p2 = self.objects[portIds[0]], self.objects[portIds[1]]
+        wire = WireView(p1, p2, self.wireColor, self.objects)
+        p1.wire = wire
+        wireId = f"wire{self.wireCounter}"
+        wire.pathfind()
+        self.objects[wireId] = wire
+        self.wireCounter += 1
+
+    def updateWires(self):
+        for idx in self.objects.keys():
+            obj = self.objects[idx]
+            if type(obj) is WireView:
+                obj.rects = []
+                obj.pathfind()
+
+    def stateChange(self, portId):
+        p = self.objects[portId]
+        p.state = not p.state
+
+    def stateVerify(self, stateMap):
+        for idx in stateMap.keys():
+            port = self.objects[idx]
+            port.state = stateMap[port.id]
+    
     def centerCircuitPorts(self):
         workableHeight = self.windowHeight - self.menuHeight
         numInputs = self.count(PortType.CIRCUIT_INPUT)
@@ -128,25 +165,31 @@ class View:
                 counter += 1
         return counter
 
-    def linkPorts(self, payload):
-        port1Id, port2Id = payload
+    def linkPorts(self, portIds):
+        port1Id, port2Id = portIds
+        port1 = self.objects[port1Id]
+        port2 = self.objects[port2Id]
+        port2.input = port1
+        port2.state = port1.state
+        port1.output = port2
 
-    def changeColorOnHover(self):
-        ho = self.getHoveredObject() 
-        if ho is None:
-            return
-        ho.color = pygame.Color(255, 255, 255)
-
-    def resetColor(self):
-        ho = self.getHoveredObject()
-        if ho is not None:
-            return
+    def changeColorWithState(self):
         for idx in self.objects.keys():
             obj = self.objects[idx]
-            if type(obj) is ButtonView or type(obj) is GateView:
-                obj.color = self.buttonColor
-            else:
-                obj.color = self.portColor
+            if type(obj) is PortView:
+                if obj.state == 1:
+                    obj.color = (0,255,0)
+                else:
+                    obj.color = (255,0,0) 
+
+    def changeColorOnHover(self):
+        currentHo = self.getHoveredObject()
+        if currentHo is None and self.hoveredObject is not None:
+            self.hoveredObject.color = self.hoveredObject.oldColor
+        if currentHo is not None:
+            if currentHo.color != (255,255,255):
+                self.hoveredObject.oldColor = self.hoveredObject.color
+            self.hoveredObject.color = (255,255,255)
 
     def getHoveredObject(self):
         mousePos = pygame.mouse.get_pos()
@@ -155,6 +198,7 @@ class View:
             if obj.rect is None:
                 continue
             if obj.rect.collidepoint(mousePos):
+                self.hoveredObject = obj
                 return obj
         return None
 
@@ -164,25 +208,22 @@ class View:
             return obj
         return None
 
-    def getAreaMap(self):
-        pass
-
     def checkForPortLinkAction(self):
         ho1 = self.getHoveredPort()
 
         if ho1 is None:
-            return
+            return None
 
         notValid = True
         while notValid:
+            pygame.event.wait()
             ho2 = self.getHoveredPort()
-            print(f"ho1: {ho1}, ho2: {ho2}")
             if (ho2 is None) or (ho1 == ho2):
                 continue
             if pygame.mouse.get_pressed()[0]:
                 notValid = False
 
-        return (ho1, ho2)
+        return (ho1.id, ho2.id)
 
     def dragGate(self, event, obj):
         if event.type == pygame.MOUSEBUTTONDOWN:
@@ -194,13 +235,25 @@ class View:
             mousePos = pygame.mouse.get_pos()
             pos = ((mousePos[0]-obj.width/2),(mousePos[1]-obj.height/2))
             obj.updatePos(self.screen, pos)
+            self.updateWires()
             
     def eventLoop(self):
         for event in pygame.event.get():
             hoveredObject = self.getHoveredObject()
-            clicked = pygame.mouse.get_pressed()[0]
+            if hoveredObject is not None:
+                self.hoveredObject = hoveredObject
+            lmbClicked = pygame.mouse.get_pressed()[0]
+            rmbClicked = pygame.mouse.get_pressed()[2]
 
-            if not clicked or hoveredObject is None:
+            self.eventBus.publish(Event(EventType.STATE_VERIFY))
+
+            if hoveredObject is None:
+                return
+
+            if rmbClicked and hoveredObject.type == PortType.CIRCUIT_INPUT:
+                self.eventBus.publish(Event(EventType.STATE_CHANGE, hoveredObject.id))
+
+            if not lmbClicked:
                 return
 
             if hoveredObject.type == ButtonType.ADD_INPUT:
@@ -212,7 +265,11 @@ class View:
             elif hoveredObject.type == ButtonType.ADD_AND_GATE:
                 self.eventBus.publish(Event(EventType.GATE, GateType.AND_GATE))
 
-            self.checkForPortLinkAction()
             self.dragGate(event, hoveredObject)
+
+            linkablePorts = self.checkForPortLinkAction()
+            if linkablePorts is not None:
+                self.eventBus.publish(Event(EventType.LINK, linkablePorts))
+            
             
 

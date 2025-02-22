@@ -24,6 +24,7 @@ class ButtonView:
         self.color = color
         self.textColor = textColor
         self.id = buttonId
+        self.oldColor = color
 
         self.font = pygame.font.SysFont("Source Code Pro", self.textSize) 
         self.renderedText = self.font.render(text, True, self.textColor)

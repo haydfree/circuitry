@@ -6,6 +6,8 @@ class EventType(Enum):
     CIRCUIT_OUTPUT = auto()
     GATE = auto()
     LINK = auto()
+    STATE_CHANGE = auto()
+    STATE_VERIFY = auto()
 
 class Event:
     def __init__(self, eventType: EventType, payload=None):
