@@ -22,7 +22,8 @@ class GateView:
         self.textColor = textColor
         self.portSize = 10
         self.screen = screen
-        self.oldColor = color
+        self.mainColor = color
+        self.hoverColor = (255,255,255)
 
         if gateType == GateType.NOT_GATE:
             self.text = "NOT"
@@ -99,8 +100,6 @@ class GateView:
             port.x -= xOffset
             port.y -= yOffset
             port.pos = (port.x,port.y)
-            #port.rect = pygame.draw.circle(screen, self.portColor, port.pos, port.size) ??????????? like why????
-            #pygame is fucking trash for this bruh
             port.rect.update(port.pos, (port.size,port.size))
 
 

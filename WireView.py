@@ -11,7 +11,8 @@ class WireView:
         self.rect = None
         self.type = None
         self.color = color
-        self.oldColor = color
+        self.mainColor = color
+        self.hoverColor = (255,255,255)
 
         self.lineWidth = 3
         self.rects = []

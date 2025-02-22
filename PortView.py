@@ -10,7 +10,9 @@ class PortView:
         self.id = portId
         self.color = color
         self.type = portType
-        self.oldColor = color
+        self.mainColor = color
+        self.hoverColor = (255,255,255)
+        self.stateColor = (0,255,0)
 
         self.state = None 
         self.rect = None

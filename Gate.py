@@ -23,7 +23,7 @@ class Gate:
         self.numInputs = numInputs
         self.numOutputs = numOutputs
 
-        self.state = None
+        self.state = 0
         self.inputIds = []
         self.outputIds = []
 

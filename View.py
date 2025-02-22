@@ -33,7 +33,7 @@ class View:
         self.buttonTextColor = pygame.Color(200, 200, 200)
         self.backgroundColor = pygame.Color(40,28,52)
         self.buttonColor = pygame.Color(50, 50, 50)
-        self.portColor = pygame.Color(20, 20, 20)
+        self.portColor = pygame.Color(255,0,0)
         self.buttonSize = (80, 50)
         self.buttonTextSize = 20
         self.portSize = 10
@@ -48,16 +48,17 @@ class View:
  
     def run(self):
         while self.running:
-            self.drawScreen()
             self.eventLoop()
+            self.drawScreen()
 
     def drawScreen(self):
         self.screen.fill(self.backgroundColor)
 
         self.drawUI()
         self.drawObjects()
-        self.changeColorWithState()
         self.changeColorOnHover()
+        self.resetColor()
+        self.changeColorWithState()
 
         pygame.display.flip()
         self.clock.tick(self.frameRate)
@@ -219,18 +220,20 @@ class View:
             obj = self.objects[idx]
             if type(obj) is PortView:
                 if obj.state == 1:
-                    obj.color = (0,255,0)
-                else:
-                    obj.color = (255,0,0) 
+                    obj.color = obj.stateColor
 
     def changeColorOnHover(self):
         currentHo = self.getHoveredObject()
-        if (currentHo is None or currentHo != self.getHoveredObject()) and self.hoveredObject is not None:
-            self.hoveredObject.color = self.hoveredObject.oldColor
         if currentHo is not None:
-            if currentHo.color != (255,255,255):
-                self.hoveredObject.oldColor = self.hoveredObject.color
-            self.hoveredObject.color = (255,255,255)
+            currentHo.color = currentHo.hoverColor
+
+    def resetColor(self):
+        currentHo = self.getHoveredObject()
+        for idx in self.objects.keys():
+            obj = self.objects[idx]
+            if currentHo == obj:
+                continue
+            obj.color = obj.mainColor
 
     def getHoveredObject(self):
         mousePos = pygame.mouse.get_pos()
@@ -277,25 +280,22 @@ class View:
             pos = ((mousePos[0]-obj.width/2),(mousePos[1]-obj.height/2))
             obj.updatePos(self.screen, pos)
             self.updateWires()
-            
+
     def eventLoop(self):
-        pygame.event.pump()
         self.eventBus.publish(Event(EventType.STATE_VERIFY))
         for event in pygame.event.get():
             hoveredObject = self.getHoveredObject()
-            if hoveredObject is not None:
-                self.hoveredObject = hoveredObject
             lmbClicked = pygame.mouse.get_pressed()[0]
             rmbClicked = pygame.mouse.get_pressed()[2]
 
             if hoveredObject is None:
-                return
+                continue
 
             if rmbClicked and hoveredObject.type == PortType.CIRCUIT_INPUT:
                 self.eventBus.publish(Event(EventType.STATE_CHANGE, hoveredObject.id))
 
             if not lmbClicked:
-                return
+                continue 
 
             if hoveredObject.type == ButtonType.ADD_INPUT:
                 self.eventBus.publish(Event(EventType.CIRCUIT_INPUT))
@@ -326,6 +326,5 @@ class View:
             if linkablePorts is not None:
                 self.eventBus.publish(Event(EventType.LINK, linkablePorts))
 
-            
             
 
