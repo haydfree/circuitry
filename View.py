@@ -239,12 +239,13 @@ class View:
             
     def eventLoop(self):
         for event in pygame.event.get():
+            pygame.event.pump()
             hoveredObject = self.getHoveredObject()
             if hoveredObject is not None:
                 self.hoveredObject = hoveredObject
             lmbClicked = pygame.mouse.get_pressed()[0]
             rmbClicked = pygame.mouse.get_pressed()[2]
-
+                
             self.eventBus.publish(Event(EventType.STATE_VERIFY))
 
             if hoveredObject is None:
@@ -270,6 +271,7 @@ class View:
             linkablePorts = self.checkForPortLinkAction()
             if linkablePorts is not None:
                 self.eventBus.publish(Event(EventType.LINK, linkablePorts))
+
             
             
 

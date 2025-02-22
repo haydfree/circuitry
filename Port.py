@@ -11,7 +11,7 @@ class Port:
     def __init__(self, portId, portType):
         self.id = portId
         self.type = portType
-        self.state = None 
+        self.state = 0 
         self.input = None
         self.output = None
 

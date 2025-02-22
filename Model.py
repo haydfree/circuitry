@@ -1,6 +1,7 @@
 from Port import Port, PortType
 from Gate import Gate, GateType
 from Event import EventType, Event, EventBus
+from typing import Tuple
 
 class Model:
     def __init__(self, eventBus: EventBus):
@@ -8,6 +9,9 @@ class Model:
 
         self.objects = {}
         self.objectCounter = 0
+
+        self.portMap = {}
+        self.gates = {}
 
     def addPort(self, portType, gateId=None):
         portId = self.objectCounter
@@ -31,6 +35,8 @@ class Model:
         self.objects[newGate.id] = newGate
         self.objectCounter += 1
 
+        self.gates[gateId] = newGate
+
         return (newGate.id, newGate.numInputs, newGate.numOutputs)
 
     def addGatePorts(self, gateId):
@@ -44,38 +50,45 @@ class Model:
         return (inputIds, outputIds)
 
     def linkPorts(self, portIds):
+        assert isinstance(portIds, tuple) and len(portIds) == 2 and all(isinstance(item, int) for item in portIds)
         port1Id, port2Id = portIds
         port1 = self.objects[port1Id]
         port2 = self.objects[port2Id]
         port2.input = port1
         port2.state = port1.state
         port1.output = port2
+        
+        self.portMap[port1Id] = port2Id 
+
+    def runGates(self):
+        for idx in self.gates.keys():
+            gate = self.gates[idx]
+            gate.run()
 
     def stateChange(self, portId):
         p = self.objects[portId]
+        assert isinstance(portId, int)
+        assert portId in self.objects.keys()
+        assert p.state is not None
         p.state = not p.state
 
     def stateVerify(self):
         stateMap = {}
-        for idx in self.objects.keys():
+        for idx in self.portMap.keys():
             obj = self.objects[idx]
-            if type(obj) is Port:
-                if obj.type == PortType.CIRCUIT_INPUT:
-                    if obj.output is not None:
-                        obj.output.state = obj.state
-                elif obj.type == PortType.CIRCUIT_OUTPUT:
-                    if obj.input is not None:
-                        obj.state = obj.input.state
-                elif obj.type == PortType.GATE_INPUT:
-                    if obj.input is not None:
-                        obj.state = obj.input.state
-                     
-            elif type(obj) is GateType:
-                if obj.inputIds and obj.outputIds:
-                    obj.run()
+            outputId = self.portMap[idx] 
+            output = self.objects[outputId]
+            output.input = obj
+            obj.output = output
+            output.state = obj.state
 
-                stateMap[obj.id] = obj.state
+            stateMap[obj.id] = obj.state
+            stateMap[output.id] = output.state
+
         return stateMap
+
+
+
         
 
 

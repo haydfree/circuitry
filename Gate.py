@@ -1,6 +1,7 @@
 import sys
 from typing import List
 from enum import Enum, auto
+from Port import PortType
 
 
 class GateType(Enum):
@@ -29,7 +30,6 @@ class Gate:
     def run(self):
         for idx in self.objects.keys():
             obj = self.objects[idx]
-            assert obj.input is not None and obj.output is not None
             if obj.type == PortType.GATE_OUTPUT:
                 self.outputIds.append(obj.id)
             elif obj.type == PortType.GATE_INPUT:
@@ -37,12 +37,9 @@ class Gate:
             else:
                 sys.exit("should not be here")
 
-        if self.gateType == GateType.NOT_GATE:
-            assert len(self.inputIds) == self.numInputs == 1
-            assert len(self.outputIds) == self.numOutputs == 1
-        elif self.gateType == GateType.AND_GATE:
-            assert len(self.inputIds) == self.numInputs == 2
-            assert len(self.outputIds) == self.numOutputs == 1
+        if self.type == GateType.NOT_GATE:
+            pass
+        elif self.type == GateType.AND_GATE:
 
             outputPort = self.objects[self.outputIds[0]]
             inputPort0 = self.objects[self.inputIds[0]]

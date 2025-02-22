@@ -49,6 +49,7 @@ class Controller():
         elif event.type == EventType.STATE_VERIFY:
             stateMap = self.model.stateVerify()
             self.view.stateVerify(stateMap)
+            self.model.runGates()
 
 
 
