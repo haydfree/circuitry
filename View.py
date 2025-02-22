@@ -19,6 +19,7 @@ class View:
         pygame.init()
         self.screen: pygame.display = pygame.display.set_mode((windowWidth, windowHeight))
         self.clock: pygame.time.Clock = pygame.time.Clock()
+        pygame.display.set_caption("Circuitry")
         self.running: bool = True
         self.frameRate = 60
         self.windowWidth = windowWidth
@@ -34,7 +35,7 @@ class View:
         self.buttonColor = pygame.Color(50, 50, 50)
         self.portColor = pygame.Color(20, 20, 20)
         self.buttonSize = (80, 50)
-        self.buttonTextSize = 10
+        self.buttonTextSize = 20
         self.portSize = 10
         self.menuHeight = 100
         self.portMargin = 50
@@ -86,8 +87,8 @@ class View:
     def addAllButtons(self):
         map1 = {"CLEAR": ButtonType.CLEAR, "QUIT": ButtonType.QUIT}
         map2 = {
-            "ADD INPUT": ButtonType.ADD_INPUT,
-            "ADD OUTPUT": ButtonType.ADD_OUTPUT,
+            "INPUT": ButtonType.ADD_INPUT,
+            "OUTPUT": ButtonType.ADD_OUTPUT,
             "NOT": ButtonType.ADD_NOT_GATE,
             "AND": ButtonType.ADD_AND_GATE,
             "NAND": ButtonType.ADD_NAND_GATE,
@@ -278,15 +279,14 @@ class View:
             self.updateWires()
             
     def eventLoop(self):
+        pygame.event.pump()
+        self.eventBus.publish(Event(EventType.STATE_VERIFY))
         for event in pygame.event.get():
-            pygame.event.pump()
             hoveredObject = self.getHoveredObject()
             if hoveredObject is not None:
                 self.hoveredObject = hoveredObject
             lmbClicked = pygame.mouse.get_pressed()[0]
             rmbClicked = pygame.mouse.get_pressed()[2]
-                
-            self.eventBus.publish(Event(EventType.STATE_VERIFY))
 
             if hoveredObject is None:
                 return

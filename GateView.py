@@ -30,13 +30,13 @@ class GateView:
             self.text = "AND"
         elif gateType == GateType.NAND_GATE:
             self.text = "NAND"
-        elif gateType == GateType.NAND_GATE:
+        elif gateType == GateType.OR_GATE:
             self.text = "OR"
-        elif gateType == GateType.NAND_GATE:
+        elif gateType == GateType.NOR_GATE:
             self.text = "NOR"
-        elif gateType == GateType.NAND_GATE:
+        elif gateType == GateType.XOR_GATE:
             self.text = "XOR"
-        elif gateType == GateType.NAND_GATE:
+        elif gateType == GateType.XNOR_GATE:
             self.text = "XNOR"
         else:
             self.text = "69420"
