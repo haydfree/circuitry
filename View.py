@@ -1,6 +1,7 @@
 import pygame
 import pdb
 import time
+import sys
 from typing import Tuple
 from Port import PortType
 from Gate import GateType
@@ -42,9 +43,7 @@ class View:
         self.dragging = False
         self.wireColor = (0,0,0)
 
-        self.addButton("ADD INPUT", (50,650), ButtonType.ADD_INPUT)
-        self.addButton("ADD OUTPUT", (self.windowWidth - self.portMargin*2, 650), ButtonType.ADD_OUTPUT)
-        self.addButton("ADD AND GATE", ((self.windowWidth-self.gateSize[0])/2, 650), ButtonType.ADD_AND_GATE)
+        self.addAllButtons()
  
     def run(self):
         while self.running:
@@ -71,6 +70,47 @@ class View:
     def drawObjects(self):
         for idx in self.objects.keys():
             self.objects[idx].draw(self.screen)
+
+    def clear(self):
+        self.objects = {}
+        self.buttonCounter = 0
+        self.wireCounter = 0
+        self.addAllButtons()
+
+    def quit(self):
+        self.clear()
+        pygame.display.quit()
+        pygame.quit()
+        sys.exit()
+
+    def addAllButtons(self):
+        map1 = {"CLEAR": ButtonType.CLEAR, "QUIT": ButtonType.QUIT}
+        map2 = {
+            "ADD INPUT": ButtonType.ADD_INPUT,
+            "ADD OUTPUT": ButtonType.ADD_OUTPUT,
+            "NOT": ButtonType.ADD_NOT_GATE,
+            "AND": ButtonType.ADD_AND_GATE,
+            "NAND": ButtonType.ADD_NAND_GATE,
+            "OR": ButtonType.ADD_OR_GATE,
+            "NOR": ButtonType.ADD_NOR_GATE,
+            "XOR": ButtonType.ADD_XOR_GATE,
+            "XNOR": ButtonType.ADD_XNOR_GATE
+        }
+        x,y = 0,0
+        pos = x,y
+        for idx in map1.keys():
+            btnType = map1[idx]
+            self.addButton(idx, pos, btnType)
+            x+=90
+            pos=x,y
+
+        x,y = 50,650
+        pos = x,y
+        for idx in map2.keys():
+            btnType = map2[idx]
+            self.addButton(idx, pos, btnType)
+            x+=(self.windowWidth-50)/len(map2.keys())
+            pos=x,y
 
     def addButton(self, text: str, buttonPos: Tuple[int, int], buttonType: ButtonType):
         btnId = f"btn{self.buttonCounter}"
@@ -184,7 +224,7 @@ class View:
 
     def changeColorOnHover(self):
         currentHo = self.getHoveredObject()
-        if currentHo is None and self.hoveredObject is not None:
+        if (currentHo is None or currentHo != self.getHoveredObject()) and self.hoveredObject is not None:
             self.hoveredObject.color = self.hoveredObject.oldColor
         if currentHo is not None:
             if currentHo.color != (255,255,255):
@@ -259,12 +299,26 @@ class View:
 
             if hoveredObject.type == ButtonType.ADD_INPUT:
                 self.eventBus.publish(Event(EventType.CIRCUIT_INPUT))
-
             elif hoveredObject.type == ButtonType.ADD_OUTPUT:
                 self.eventBus.publish(Event(EventType.CIRCUIT_OUTPUT))
-
+            elif hoveredObject.type == ButtonType.ADD_NOT_GATE:
+                self.eventBus.publish(Event(EventType.GATE, GateType.NOT_GATE))
             elif hoveredObject.type == ButtonType.ADD_AND_GATE:
                 self.eventBus.publish(Event(EventType.GATE, GateType.AND_GATE))
+            elif hoveredObject.type == ButtonType.ADD_NAND_GATE:
+                self.eventBus.publish(Event(EventType.GATE, GateType.NAND_GATE))
+            elif hoveredObject.type == ButtonType.ADD_OR_GATE:
+                self.eventBus.publish(Event(EventType.GATE, GateType.OR_GATE))
+            elif hoveredObject.type == ButtonType.ADD_NOR_GATE:
+                self.eventBus.publish(Event(EventType.GATE, GateType.NOR_GATE))
+            elif hoveredObject.type == ButtonType.ADD_XOR_GATE:
+                self.eventBus.publish(Event(EventType.GATE, GateType.XOR_GATE))
+            elif hoveredObject.type == ButtonType.ADD_XNOR_GATE:
+                self.eventBus.publish(Event(EventType.GATE, GateType.XNOR_GATE))
+            elif hoveredObject.type == ButtonType.CLEAR:
+                self.eventBus.publish(Event(EventType.CLEAR))
+            elif hoveredObject.type == ButtonType.QUIT:
+                self.quit()
 
             self.dragGate(event, hoveredObject)
 

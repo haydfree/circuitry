@@ -8,12 +8,13 @@ class EventType(Enum):
     LINK = auto()
     STATE_CHANGE = auto()
     STATE_VERIFY = auto()
+    CLEAR = auto()
+    QUIT = auto()
 
 class Event:
     def __init__(self, eventType: EventType, payload=None):
         self.type = eventType
         self.payload = payload
-
 
 class EventBus:
     def __init__(self):

@@ -13,6 +13,12 @@ class Model:
         self.portMap = {}
         self.gates = {}
 
+    def clear(self):
+        self.objects = {}
+        self.objectCounter = 0
+        self.portMap = {}
+        self.gates = {}
+
     def addPort(self, portType, gateId=None):
         portId = self.objectCounter
         newPort = Port(portId, portType)

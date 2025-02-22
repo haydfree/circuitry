@@ -25,10 +25,22 @@ class GateView:
         self.oldColor = color
 
         if gateType == GateType.NOT_GATE:
-            self.text = "NOT GATE"
-        
-        if gateType == GateType.AND_GATE:
-            self.text = "AND GATE"
+            self.text = "NOT"
+        elif gateType == GateType.AND_GATE:
+            self.text = "AND"
+        elif gateType == GateType.NAND_GATE:
+            self.text = "NAND"
+        elif gateType == GateType.NAND_GATE:
+            self.text = "OR"
+        elif gateType == GateType.NAND_GATE:
+            self.text = "NOR"
+        elif gateType == GateType.NAND_GATE:
+            self.text = "XOR"
+        elif gateType == GateType.NAND_GATE:
+            self.text = "XNOR"
+        else:
+            self.text = "69420"
+
 
         self.objects = {}
 

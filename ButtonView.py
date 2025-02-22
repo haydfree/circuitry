@@ -13,6 +13,9 @@ class ButtonType(Enum):
     ADD_NOR_GATE = auto()
     ADD_XNOR_GATE = auto()
 
+    CLEAR = auto()
+    QUIT = auto()
+
 
 class ButtonView:
     def __init__(self, pos, size, buttonId, text, buttonType, color, textColor, textSize):

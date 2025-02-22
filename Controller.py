@@ -51,5 +51,9 @@ class Controller():
             self.view.stateVerify(stateMap)
             self.model.runGates()
 
+        elif event.type == EventType.CLEAR:
+            self.model.clear()
+            self.view.clear()
+
 
 

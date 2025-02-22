@@ -38,15 +38,46 @@ class Gate:
                 sys.exit("should not be here")
 
         if self.type == GateType.NOT_GATE:
-            pass
+            outputPort = self.objects[self.outputIds[0]]
+            inputPort0 = self.objects[self.inputIds[0]]
+            outputPort.state = not inputPort0.state 
+            self.state = outputPort.state
         elif self.type == GateType.AND_GATE:
-
             outputPort = self.objects[self.outputIds[0]]
             inputPort0 = self.objects[self.inputIds[0]]
             inputPort1 = self.objects[self.inputIds[1]]
             outputPort.state = inputPort0.state & inputPort1.state
             self.state = outputPort.state
-
+        elif self.type == GateType.NAND_GATE:
+            outputPort = self.objects[self.outputIds[0]]
+            inputPort0 = self.objects[self.inputIds[0]]
+            inputPort1 = self.objects[self.inputIds[1]]
+            outputPort.state = not (inputPort0.state & inputPort1.state)
+            self.state = outputPort.state
+        elif self.type == GateType.OR_GATE:
+            outputPort = self.objects[self.outputIds[0]]
+            inputPort0 = self.objects[self.inputIds[0]]
+            inputPort1 = self.objects[self.inputIds[1]]
+            outputPort.state = inputPort0.state | inputPort1.state
+            self.state = outputPort.state
+        elif self.type == GateType.NOR_GATE:
+            outputPort = self.objects[self.outputIds[0]]
+            inputPort0 = self.objects[self.inputIds[0]]
+            inputPort1 = self.objects[self.inputIds[1]]
+            outputPort.state = not (inputPort0.state | inputPort1.state)
+            self.state = outputPort.state
+        elif self.type == GateType.XOR_GATE:
+            outputPort = self.objects[self.outputIds[0]]
+            inputPort0 = self.objects[self.inputIds[0]]
+            inputPort1 = self.objects[self.inputIds[1]]
+            outputPort.state = (inputPort0.state and not (inputPort1.state)) | (inputPort1.state and not (inputPort0.state))
+            self.state = outputPort.state
+        elif self.type == GateType.XNOR_GATE:
+            outputPort = self.objects[self.outputIds[0]]
+            inputPort0 = self.objects[self.inputIds[0]]
+            inputPort1 = self.objects[self.inputIds[1]]
+            outputPort.state = not ((inputPort0.state and not (inputPort1.state)) | (inputPort1.state and not (inputPort0.state)))
+            self.state = outputPort.state
             
 
             
