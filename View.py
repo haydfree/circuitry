@@ -134,7 +134,7 @@ class View:
         map1 = {
             "CLEAR": ButtonType.CLEAR, 
             "QUIT": ButtonType.QUIT, 
-            "RESET SCALE": ButtonType.RESET_SCALE
+            "RESET SCALE": ButtonType.RESET_SCALE,
         }
         map2 = {
             "INPUT": ButtonType.ADD_INPUT,
@@ -198,12 +198,18 @@ class View:
 
     def addWire(self, portIds):
         p1, p2 = self.objects[portIds[0]], self.objects[portIds[1]]
-        wire = WireView(p1, p2, self.wireColor, self.wireLineWidth, self.objects)
-        p1.wire = wire
         wireId = f"wire{self.wireCounter}"
+        wire = WireView(p1, p2, self.wireColor, self.wireLineWidth, self.objects, wireId)
+        p1.wire = wire
         wire.pathfind()
         self.objects[wireId] = wire
         self.wireCounter += 1
+
+    def removeWire(self, portIds):
+        port1Id, port2Id = portIds 
+        port1 = self.objects[port1Id]
+        wireId = port1.wire.id
+        del self.objects[wireId]
 
     def updateWires(self):
         for idx in self.objects.keys():
@@ -262,7 +268,15 @@ class View:
         port2 = self.objects[port2Id]
         port2.input = port1
         port2.state = port1.state
-        port1.output = port2
+        port1.outputs.append(port2)
+
+    def unlinkPorts(self, portIds):
+        port1Id, port2Id = portIds
+        port1 = self.objects[port1Id]
+        port2 = self.objects[port2Id]
+        port2.input = None
+        port2.state = 0
+        port1.outputs.remove(port2)
 
     def changeColorWithState(self):
         for idx in self.objects.keys():
@@ -288,11 +302,21 @@ class View:
         mousePos = pygame.mouse.get_pos()
         for idx in self.objects.keys():
             obj = self.objects[idx]
+            if type(obj) is WireView and obj.rects:
+                return self.getHoveredWire(obj, mousePos)
             if obj.rect is None:
                 continue
             if obj.rect.collidepoint(mousePos):
                 self.hoveredObject = obj
                 return obj
+        return None
+
+    def getHoveredWire(self, wire, pos):
+        if not wire.rects:
+            return None
+        for rect in wire.rects:
+            if rect.collidepoint(pos):
+                return wire
         return None
 
     def getHoveredPort(self):
@@ -356,6 +380,8 @@ class View:
 
             if rmbClicked and hoveredObject.type == PortType.CIRCUIT_INPUT:
                 self.eventBus.publish(Event(EventType.STATE_CHANGE, hoveredObject.id))
+            elif rmbClicked and type(hoveredObject) is WireView:
+                self.eventBus.publish(Event(EventType.UNLINK, hoveredObject.id))  
 
             if not lmbClicked:
                 continue 
@@ -384,6 +410,10 @@ class View:
                 self.quit()
             elif hoveredObject.type == ButtonType.RESET_SCALE:
                 self.resetScale()
+            elif hoveredObject.type == ButtonType.SAVE:
+                self.eventBus.publish(Event(EventType.SAVE))
+            elif hoveredObject.type == ButtonType.LOAD:
+                self.eventBus.publish(Event(EventType.LOAD))
 
             self.dragGate(event, hoveredObject)
 

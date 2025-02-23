@@ -16,6 +16,8 @@ class ButtonType(Enum):
     CLEAR = auto()
     QUIT = auto()
     RESET_SCALE = auto()
+    SAVE = auto()
+    LOAD = auto()
 
 
 class ButtonView:

@@ -4,7 +4,8 @@ import math
 
 
 class WireView:
-    def __init__(self, inputPort, outputPort, color, lineWidth, objects):
+    def __init__(self, inputPort, outputPort, color, lineWidth, objects, wireId):
+        self.id = wireId
         self.input = inputPort
         self.output = outputPort
         self.objects = objects

@@ -40,6 +40,14 @@ class Controller():
             self.view.linkPorts(portIds)
             self.view.addWire(portIds)
 
+        elif event.type == EventType.UNLINK:
+            wireId = event.payload
+            inputId = self.view.objects[wireId].input.id 
+            outputId = self.view.objects[wireId].output.id 
+            self.model.unlinkPorts((inputId,outputId))
+            self.view.unlinkPorts((inputId,outputId))
+            self.view.removeWire((inputId,outputId))
+
         elif event.type == EventType.STATE_CHANGE:
             portId = event.payload
             self.model.stateChange(portId)
@@ -54,6 +62,11 @@ class Controller():
             self.model.clear()
             self.view.clear()
 
+        elif event.type == EventType.SAVE:
+            pass
+
+        elif event.type == EventType.LOAD:
+            pass
 
 
 

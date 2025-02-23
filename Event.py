@@ -6,12 +6,15 @@ class EventType(Enum):
     CIRCUIT_OUTPUT = auto()
     GATE = auto()
     LINK = auto()
+    UNLINK = auto()
     STATE_CHANGE = auto()
     STATE_VERIFY = auto()
 
     CLEAR = auto()
     QUIT = auto()
     RESET_SCALE = auto()
+    SAVE = auto()
+    LOAD = auto()
 
 class Event:
     def __init__(self, eventType: EventType, payload=None):

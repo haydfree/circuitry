@@ -67,6 +67,15 @@ class Model:
         
         self.portMap[port1Id].append(port2Id)
 
+    def unlinkPorts(self, portIds):
+        self.portMap[portIds[0]] = []
+        port1Id, port2Id = portIds
+        port1 = self.objects[port1Id]
+        port2 = self.objects[port2Id]
+        port2.input = None
+        port2.state = 0
+        port1.outputs.remove(port2)
+
     def runGates(self):
         for idx in self.gates.keys():
             gate = self.gates[idx]
@@ -86,7 +95,8 @@ class Model:
                 inputPort = self.objects[inputId]
                 outputPort = self.objects[outputId]
                 outputPort.input = inputPort
-                inputPort.outputs.append(outputPort)
+                if outputPort not in inputPort.outputs:
+                    inputPort.outputs.append(outputPort)
                 outputPort.state = inputPort.state
 
                 stateMap[inputPort.id] = inputPort.state

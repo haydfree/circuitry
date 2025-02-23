@@ -17,7 +17,7 @@ class PortView:
         self.state = None 
         self.rect = None
         self.input = None
-        self.output = None
+        self.outputs = []
         self.wire = None
 
     def draw(self, screen):
