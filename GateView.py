@@ -83,9 +83,10 @@ class GateView:
                 obj.y = y
                 counterOut+=1
 
-    def updatePos(self, screen, pos):
-        xOffset = self.left - pos[0]
-        yOffset = self.top - pos[1]
+    def updatePos(self, screen, pos, xOffset=None, yOffset=None):
+        if xOffset is None and yOffset is None:
+            xOffset = self.left - pos[0]
+            yOffset = self.top - pos[1]
         self.pos = pos
         self.left, self.top = pos
         rtwidth = self.renderedText.get_width()        
@@ -101,5 +102,14 @@ class GateView:
             port.y -= yOffset
             port.pos = (port.x,port.y)
             port.rect.update(port.pos, (port.size,port.size))
+
+    def updateSize(self, screen, scale):
+        self.textSize *= scale 
+        leftOffset = (scale-1)*self.width
+        topOffset = (scale-1)*self.height
+        self.left += leftOffset
+        self.top += topOffset
+        self.pos = self.left,self.top
+        self.updatePos(screen, self.pos, -leftOffset, -topOffset)
 
 

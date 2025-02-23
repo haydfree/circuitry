@@ -43,6 +43,8 @@ class View:
         self.gateTextSize = 20
         self.dragging = False
         self.wireColor = (0,0,0)
+        self.wireLineWidth = 3
+        self.scale = 1
 
         self.addAllButtons()
  
@@ -59,6 +61,7 @@ class View:
         self.changeColorOnHover()
         self.resetColor()
         self.changeColorWithState()
+        self.scaleObjects()
 
         pygame.display.flip()
         self.clock.tick(self.frameRate)
@@ -73,6 +76,41 @@ class View:
         for idx in self.objects.keys():
             self.objects[idx].draw(self.screen)
 
+    def scaleObjects(self):
+        for idx in self.objects.keys():
+            obj = self.objects[idx]
+            if type(obj) is WireView:
+                obj.lineWidth *= self.scale
+            elif type(obj) is PortView:
+                obj.size *= self.scale
+            elif type(obj) is ButtonView:
+                continue
+            elif type(obj) is GateView:
+                obj.width *= self.scale
+                obj.height *= self.scale
+                obj.size = obj.width,obj.height
+                obj.updateSize(self.screen, self.scale)
+            else:
+                print("wtf")
+        self.scale = 1
+
+    def resetScale(self):
+        self.scale = 1
+        for idx in self.objects.keys():
+            obj = self.objects[idx]
+            if type(obj) is WireView:
+                obj.lineWidth = self.wireLineWidth
+            elif type(obj) is PortView:
+                obj.size = self.portSize
+            elif type(obj) is ButtonView:
+                continue
+            elif type(obj) is GateView:
+                obj.size = self.gateSize
+                obj.width, obj.height = self.gateSize
+                obj.updateSize(self.screen, self.scale)
+            else:
+                print("wtf")
+
     def clear(self):
         self.objects = {}
         self.buttonCounter = 0
@@ -86,7 +124,11 @@ class View:
         sys.exit()
 
     def addAllButtons(self):
-        map1 = {"CLEAR": ButtonType.CLEAR, "QUIT": ButtonType.QUIT}
+        map1 = {
+            "CLEAR": ButtonType.CLEAR, 
+            "QUIT": ButtonType.QUIT, 
+            "RESET SCALE": ButtonType.RESET_SCALE
+        }
         map2 = {
             "INPUT": ButtonType.ADD_INPUT,
             "OUTPUT": ButtonType.ADD_OUTPUT,
@@ -149,7 +191,7 @@ class View:
 
     def addWire(self, portIds):
         p1, p2 = self.objects[portIds[0]], self.objects[portIds[1]]
-        wire = WireView(p1, p2, self.wireColor, self.objects)
+        wire = WireView(p1, p2, self.wireColor, self.wireLineWidth, self.objects)
         p1.wire = wire
         wireId = f"wire{self.wireCounter}"
         wire.pathfind()
@@ -287,6 +329,14 @@ class View:
             hoveredObject = self.getHoveredObject()
             lmbClicked = pygame.mouse.get_pressed()[0]
             rmbClicked = pygame.mouse.get_pressed()[2]
+            scaleOffset = 0
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 4:
+                    scaleOffset += .1
+                if event.button == 5:
+                    scaleOffset -= .1
+                self.scale *= 1 + scaleOffset
 
             if hoveredObject is None:
                 continue
@@ -319,6 +369,8 @@ class View:
                 self.eventBus.publish(Event(EventType.CLEAR))
             elif hoveredObject.type == ButtonType.QUIT:
                 self.quit()
+            elif hoveredObject.type == ButtonType.RESET_SCALE:
+                self.resetScale()
 
             self.dragGate(event, hoveredObject)
 

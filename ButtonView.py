@@ -15,6 +15,7 @@ class ButtonType(Enum):
 
     CLEAR = auto()
     QUIT = auto()
+    RESET_SCALE = auto()
 
 
 class ButtonView:
@@ -29,6 +30,9 @@ class ButtonView:
         self.id = buttonId
         self.mainColor = color
         self.hoverColor = (255,255,255)
+
+        if self.type == ButtonType.RESET_SCALE:
+            self.textSize = 10
 
         self.font = pygame.font.SysFont("Source Code Pro", self.textSize) 
         self.renderedText = self.font.render(text, True, self.textColor)

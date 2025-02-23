@@ -4,7 +4,7 @@ import math
 
 
 class WireView:
-    def __init__(self, inputPort, outputPort, color, objects):
+    def __init__(self, inputPort, outputPort, color, lineWidth, objects):
         self.input = inputPort
         self.output = outputPort
         self.objects = objects
@@ -14,7 +14,7 @@ class WireView:
         self.mainColor = color
         self.hoverColor = (255,255,255)
 
-        self.lineWidth = 3
+        self.lineWidth = lineWidth
         self.rects = []
 
 
