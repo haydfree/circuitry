@@ -13,6 +13,6 @@ class Port:
         self.type = portType
         self.state = 0 
         self.input = None
-        self.output = None
+        self.outputs = []
 
 

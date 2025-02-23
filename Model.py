@@ -24,6 +24,7 @@ class Model:
         newPort = Port(portId, portType)
         self.objects[newPort.id] = newPort
         self.objectCounter += 1
+        self.portMap[portId] = []
 
         if gateId is not None:
             self.objects[gateId].objects[newPort.id] = newPort
@@ -62,9 +63,9 @@ class Model:
         port2 = self.objects[port2Id]
         port2.input = port1
         port2.state = port1.state
-        port1.output = port2
+        port1.outputs.append(port2)
         
-        self.portMap[port1Id] = port2Id 
+        self.portMap[port1Id].append(port2Id)
 
     def runGates(self):
         for idx in self.gates.keys():
@@ -80,16 +81,16 @@ class Model:
 
     def stateVerify(self):
         stateMap = {}
-        for idx in self.portMap.keys():
-            obj = self.objects[idx]
-            outputId = self.portMap[idx] 
-            output = self.objects[outputId]
-            output.input = obj
-            obj.output = output
-            output.state = obj.state
+        for inputId in self.portMap.keys():
+            for outputId in self.portMap[inputId]:
+                inputPort = self.objects[inputId]
+                outputPort = self.objects[outputId]
+                outputPort.input = inputPort
+                inputPort.outputs.append(outputPort)
+                outputPort.state = inputPort.state
 
-            stateMap[obj.id] = obj.state
-            stateMap[output.id] = output.state
+                stateMap[inputPort.id] = inputPort.state
+                stateMap[outputPort.id] = outputPort.state
 
         return stateMap
 
