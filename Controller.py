@@ -33,7 +33,6 @@ class Controller():
             payload = gateId, gateType, numInputs, numOutputs
             gateView = self.view.addGate(payload)
             self.view.addGatePorts(gateId, portIds)
-            gateView.centerGatePorts()
 
         elif event.type == EventType.LINK:
             portIds = event.payload

@@ -45,6 +45,7 @@ class View:
         self.wireColor = (0,0,0)
         self.wireLineWidth = 3
         self.scale = 1
+        self.drawLinkPortsAlert = False
 
         self.addAllButtons()
  
@@ -63,6 +64,9 @@ class View:
         self.changeColorWithState()
         self.scaleObjects()
 
+        if self.drawLinkPortsAlert:
+            self.drawText("Linking ports. Press Esc to cancel...", (650, 50), 20)
+
         pygame.display.flip()
         self.clock.tick(self.frameRate)
 
@@ -76,6 +80,11 @@ class View:
         for idx in self.objects.keys():
             self.objects[idx].draw(self.screen)
 
+    def drawText(self, text, pos, size):
+        font = pygame.font.SysFont("Source Code Pro", size) 
+        renderedText = font.render(text, True, self.buttonTextColor)
+        self.screen.blit(renderedText, pos)
+
     def scaleObjects(self):
         for idx in self.objects.keys():
             obj = self.objects[idx]
@@ -86,13 +95,11 @@ class View:
             elif type(obj) is ButtonView:
                 continue
             elif type(obj) is GateView:
-                obj.width *= self.scale
-                obj.height *= self.scale
-                obj.size = obj.width,obj.height
-                obj.updateSize(self.screen, self.scale)
+                obj.update(self.screen, obj.pos, self.scale)
             else:
                 print("wtf")
         self.scale = 1
+        self.updateWires()
 
     def resetScale(self):
         self.scale = 1
@@ -107,7 +114,7 @@ class View:
             elif type(obj) is GateView:
                 obj.size = self.gateSize
                 obj.width, obj.height = self.gateSize
-                obj.updateSize(self.screen, self.scale)
+                obj.update(self.screen, obj.pos, self.scale)
             else:
                 print("wtf")
 
@@ -300,15 +307,21 @@ class View:
         if ho1 is None:
             return None
 
+        self.drawLinkPortsAlert = True
+        self.drawScreen()
         notValid = True
         while notValid:
-            pygame.event.wait()
+            for event in pygame.event.get():
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                    self.drawLinkPortsAlert = False
+                    return None
             ho2 = self.getHoveredPort()
             if (ho2 is None) or (ho1 == ho2):
                 continue
             if pygame.mouse.get_pressed()[0]:
                 notValid = False
 
+        self.drawLinkPortsAlert = False
         return (ho1.id, ho2.id)
 
     def dragGate(self, event, obj):
@@ -320,7 +333,7 @@ class View:
         if self.dragging and type(obj) is GateView:
             mousePos = pygame.mouse.get_pos()
             pos = ((mousePos[0]-obj.width/2),(mousePos[1]-obj.height/2))
-            obj.updatePos(self.screen, pos)
+            obj.update(self.screen, pos, self.scale)
             self.updateWires()
 
     def eventLoop(self):
